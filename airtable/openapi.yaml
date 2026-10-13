@@ -1,0 +1,2609 @@
+# Sources: https://airtable.com/developers/web/api/introduction ; endpoint pages under https://airtable.com/developers/web/api/ (list-records, get-record, create-records, update-multiple-records, delete-multiple-records, update-record, get-base-schema, list-bases, get-base-collaborators, create-base, create-table, update-table, create-field, update-field, list-views, get-view-metadata, delete-base, create-workspace, delete-workspace, update-workspace-ai-allowlist, get-user-id-scopes, upload-attachment, post-sync-api-endpoint, list-comments, create-comment, update-comment, delete-comment, list-webhooks, create-a-webhook, delete-a-webhook, enable-disable-webhook-notifications, refresh-a-webhook, list-webhook-payloads, get-enterprise, get-users-by-id-or-email, get-user-by-id, manage-user-membership, create-descendant-enterprise, remove-user-from-enterprise, move-workspaces, move-user-groups, grant-admin-access, revoke-admin-access, list-enterprise-packages, create-base-from-package-enterprise, create-scim-user, put-scim-user, patch-scim-user); changelog https://airtable.com/developers/web/api/changelog ; built 2026-10-12
+openapi: 3.1.0
+info:
+  title: Airtable Web API
+  version: "2026-10-12"
+  description: >-
+    OpenAPI description built from the Airtable Web API reference pages (not an official Airtable file).
+    Two endpoints (list personal access tokens and revoke enterprise personal access tokens) could not be fetched and are omitted.
+  x-source-urls:
+    - https://airtable.com/developers/web/api/introduction
+    - https://airtable.com/developers/web/api/changelog
+    - https://airtable.com/developers/web
+servers:
+  - url: https://api.airtable.com
+    description: Airtable API
+security:
+  - bearerAuth: []
+tags:
+  - name: Records
+  - name: Attachments
+  - name: Sync
+  - name: Metadata
+  - name: Comments
+  - name: Webhooks
+  - name: User
+  - name: Enterprise
+  - name: SCIM
+paths:
+  /v0/{baseId}/{tableIdOrName}:
+    get:
+      operationId: listRecords
+      tags: [Records]
+      summary: List records
+      description: Lists records in a table. Pages of up to 100 records; use offset to fetch the next page. Requires a URL under 16,000 characters; use POST listRecords otherwise.
+      x-required-scopes: [data.records:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - name: timeZone
+          in: query
+          required: false
+          description: Time zone for formatting dates when cellFormat is string. Required in that case.
+          schema:
+            type: string
+        - name: userLocale
+          in: query
+          required: false
+          description: Locale for formatting dates when cellFormat is string. Required in that case.
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          required: false
+          description: Records per request. Maximum 100, default 100.
+          schema:
+            type: number
+        - name: maxRecords
+          in: query
+          required: false
+          description: Maximum total records to return across pages.
+          schema:
+            type: number
+        - name: offset
+          in: query
+          required: false
+          description: Offset from the previous response, used to fetch the next page.
+          schema:
+            type: string
+        - name: view
+          in: query
+          required: false
+          description: View name or ID.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: Sort specifications (JSON-encoded array of objects with field and optional direction).
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/SortSpec'
+        - name: filterByFormula
+          in: query
+          required: false
+          description: Formula that filters records. Must be URL-encoded.
+          schema:
+            type: string
+        - name: cellFormat
+          in: query
+          required: false
+          description: Cell value format. Default json. The string format is not guaranteed to be stable.
+          schema:
+            type: string
+            enum: [json, string]
+        - name: fields
+          in: query
+          required: false
+          description: Field names or IDs to include in the response.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: returnFieldsByFieldId
+          in: query
+          required: false
+          description: Keys field objects by field ID instead of name. Default false.
+          schema:
+            type: boolean
+        - name: includeDateDependencyMetadata
+          in: query
+          required: false
+          description: Returns linked-record cells as objects with an id. Default false, which returns record ID strings.
+          schema:
+            type: boolean
+        - name: recordMetadata
+          in: query
+          required: false
+          description: Adds commentCount to each record when set to commentCount.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [commentCount]
+      responses:
+        '200':
+          description: Records returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecordsResponse'
+    post:
+      operationId: createRecords
+      tags: [Records]
+      summary: Create records
+      description: Creates one record (fields) or multiple records (records array).
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecordsRequest'
+      responses:
+        '200':
+          description: Record(s) created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRecordsResponse'
+    patch:
+      operationId: updateMultipleRecords
+      tags: [Records]
+      summary: Update multiple records (PATCH, optional upsert)
+      description: Updates only the fields sent. When performUpsert is set, records are matched on fieldsToMergeOn.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMultipleRecordsRequest'
+      responses:
+        '200':
+          description: Records updated or upserted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMultipleRecordsResponse'
+    put:
+      operationId: replaceMultipleRecords
+      tags: [Records]
+      summary: Update multiple records (PUT, destructive)
+      description: Destructive update; clears cell values not included in the request. Accepts the same body as PATCH.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMultipleRecordsRequest'
+      responses:
+        '200':
+          description: Records replaced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMultipleRecordsResponse'
+    delete:
+      operationId: deleteMultipleRecords
+      tags: [Records]
+      summary: Delete multiple records
+      description: Deletes records given as repeated records[] query values.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - name: records
+          in: query
+          required: false
+          description: Record IDs to delete, sent as repeated records[] values (e.g. ?records[]=rec...&records[]=rec...).
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Records deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteMultipleRecordsResponse'
+  /v0/{baseId}/{tableIdOrName}/{recordId}:
+    get:
+      operationId: getRecord
+      tags: [Records]
+      summary: Get record
+      description: Returns one record. If the record is not in the given table, a base-wide search is performed.
+      x-required-scopes: [data.records:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+        - name: cellFormat
+          in: query
+          required: false
+          description: json returns type-dependent JSON; string returns user-facing strings and requires timeZone and userLocale. Default json.
+          schema:
+            type: string
+            enum: [json, string]
+        - name: returnFieldsByFieldId
+          in: query
+          required: false
+          description: Keys fields by field ID instead of name. Default false.
+          schema:
+            type: boolean
+        - name: includeDateDependencyMetadata
+          in: query
+          required: false
+          description: When true, linked-record fields return objects with an id. Default false.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Record returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordObject'
+    patch:
+      operationId: updateRecord
+      tags: [Records]
+      summary: Update record (PATCH)
+      description: Updates only the specified fields of one record.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecordRequest'
+      responses:
+        '200':
+          description: Record updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordObject'
+    put:
+      operationId: replaceRecord
+      tags: [Records]
+      summary: Update record (PUT, destructive)
+      description: Destructive update; clears cell values not specified in the request.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecordRequest'
+      responses:
+        '200':
+          description: Record replaced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordObject'
+  /v0/{baseId}/{recordId}/{attachmentFieldIdOrName}/uploadAttachment:
+    servers:
+      - url: https://content.airtable.com
+        description: Content host for attachment uploads (as documented)
+    post:
+      operationId: uploadAttachment
+      tags: [Attachments]
+      summary: Upload attachment
+      description: Uploads a base64-encoded file (5 MB limit). For larger files use a public URL with the multipleAttachments field model.
+      x-required-scopes: [data.records:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/RecordId'
+        - $ref: '#/components/parameters/AttachmentFieldIdOrName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadAttachmentRequest'
+      responses:
+        '200':
+          description: Record with attachment added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordObject'
+  /v0/{baseId}/{tableIdOrName}/sync/{apiEndpointSyncId}:
+    post:
+      operationId: postSyncApiEndpoint
+      tags: [Sync]
+      summary: Sync CSV data
+      description: Sends raw CSV text to a sync endpoint. Limits per the docs - up to 10k rows, 500 columns, 2 MB per request; rate limit 20 requests per 5 minutes per base. Response fields not specified on the docs page.
+      x-required-scopes: [data.records:write, schema.bases:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - name: apiEndpointSyncId
+          in: path
+          required: true
+          description: Sync endpoint ID from the Sync API table setup flow or the synced table's settings.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: Raw CSV text.
+      responses:
+        '200':
+          description: Sync request accepted. Response body not documented.
+  /v0/{baseId}/{tableIdOrName}/{recordId}/comments:
+    get:
+      operationId: listComments
+      tags: [Comments]
+      summary: List comments
+      description: Lists comments on a record, newest first.
+      x-required-scopes: [data.recordComments:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+        - name: pageSize
+          in: query
+          required: false
+          description: Comments to return. Default 100, maximum 100.
+          schema:
+            type: number
+        - name: offset
+          in: query
+          required: false
+          description: Pointer to where results begin.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comments returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCommentsResponse'
+    post:
+      operationId: createComment
+      tags: [Comments]
+      summary: Create comment
+      description: Creates a comment on a record. Mentions are written inline in text as @[userId].
+      x-required-scopes: [data.recordComments:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '200':
+          description: Comment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+  /v0/{baseId}/{tableIdOrName}/{recordId}/comments/{rowCommentId}:
+    patch:
+      operationId: updateComment
+      tags: [Comments]
+      summary: Update comment
+      description: Updates a comment. Only comments created by the caller can be updated.
+      x-required-scopes: [data.recordComments:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+        - $ref: '#/components/parameters/RowCommentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentRequest'
+      responses:
+        '200':
+          description: Comment updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+    delete:
+      operationId: deleteComment
+      tags: [Comments]
+      summary: Delete comment
+      description: Non-admin API users can delete only their own comments. Enterprise admins can delete any comment on a record.
+      x-required-scopes: [data.recordComments:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+        - $ref: '#/components/parameters/RecordId'
+        - $ref: '#/components/parameters/RowCommentId'
+      responses:
+        '200':
+          description: Comment deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+  /v0/meta/bases:
+    get:
+      operationId: listBases
+      tags: [Metadata]
+      summary: List bases
+      description: Returns the bases the token can access, 1,000 at a time.
+      x-required-scopes: [schema.bases:read]
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          description: Pagination cursor. Pass it to request the next page.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bases returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListBasesResponse'
+    post:
+      operationId: createBase
+      tags: [Metadata]
+      summary: Create base
+      description: Creates a base with at least one table. The first field of each table becomes its primary field.
+      x-required-scopes: [schema.bases:write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBaseRequest'
+      responses:
+        '200':
+          description: Base created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBaseResponse'
+  /v0/meta/bases/{baseId}:
+    get:
+      operationId: getBaseCollaborators
+      tags: [Metadata]
+      summary: Get base
+      description: Returns base metadata, optionally including collaborators, invite links, interfaces and packages.
+      x-required-scopes: [schema.bases:read, workspacesAndBases:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - name: include
+          in: query
+          required: false
+          description: Sections to include. Omitted sections are left out of the response.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [collaborators, inviteLinks, interfaces, packages]
+      responses:
+        '200':
+          description: Base returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseDetails'
+    delete:
+      operationId: deleteBase
+      tags: [Metadata]
+      summary: Delete base
+      description: Enterprise admins only. Owners can restore deleted bases from the Trash within the plan's retention period.
+      x-required-scopes: [workspacesAndBases:manage]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+      responses:
+        '200':
+          description: Base deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+  /v0/meta/bases/{baseId}/tables:
+    get:
+      operationId: getBaseSchema
+      tags: [Metadata]
+      summary: Get base schema
+      description: Returns the schema of the tables in the base.
+      x-required-scopes: [schema.bases:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - name: include
+          in: query
+          required: false
+          description: Adds extra fields to views. The only allowed value is visibleFieldIds, which applies to grid views only.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [visibleFieldIds]
+      responses:
+        '200':
+          description: Table schemas returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSchemaResponse'
+    post:
+      operationId: createTable
+      tags: [Metadata]
+      summary: Create table
+      description: Creates a table and returns its schema. A default grid view is created.
+      x-required-scopes: [schema.bases:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTableRequest'
+      responses:
+        '200':
+          description: Table created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+  /v0/meta/bases/{baseId}/tables/{tableIdOrName}:
+    patch:
+      operationId: updateTable
+      tags: [Metadata]
+      summary: Update table
+      description: Updates a table's name, description or date-dependency settings.
+      x-required-scopes: [schema.bases:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTableRequest'
+      responses:
+        '200':
+          description: Table updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+  /v0/meta/bases/{baseId}/tables/{tableId}/fields:
+    post:
+      operationId: createField
+      tags: [Metadata]
+      summary: Create field
+      description: Creates a field. The request body variant depends on type; the docs describe 41 variants with type-specific options.
+      x-required-scopes: [schema.bases:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFieldRequest'
+      responses:
+        '200':
+          description: Field created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldResponse'
+  /v0/meta/bases/{baseId}/tables/{tableId}/fields/{columnId}:
+    patch:
+      operationId: updateField
+      tags: [Metadata]
+      summary: Update field
+      description: Updates a field's name, description or options (formula fields only for formula). At least one property is required.
+      x-required-scopes: [schema.bases:write]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableId'
+        - $ref: '#/components/parameters/ColumnId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFieldRequest'
+      responses:
+        '200':
+          description: Field updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldResponse'
+  /v0/meta/bases/{baseId}/views:
+    get:
+      operationId: listViews
+      tags: [Metadata]
+      summary: List views
+      description: Lists the views of a base.
+      x-required-scopes: [workspacesAndBases:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - name: include
+          in: query
+          required: false
+          description: Only visibleFieldIds is accepted; adds visibleFieldIds to grid views.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [visibleFieldIds]
+      responses:
+        '200':
+          description: Views returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListViewsResponse'
+  /v0/meta/bases/{baseId}/views/{viewId}:
+    get:
+      operationId: getViewMetadata
+      tags: [Metadata]
+      summary: Get view metadata
+      description: Returns metadata for one view.
+      x-required-scopes: [workspacesAndBases:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/ViewId'
+        - name: include
+          in: query
+          required: false
+          description: Only visibleFieldIds is accepted, and only for grid views.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [visibleFieldIds]
+      responses:
+        '200':
+          description: View returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+  /v0/meta/workspaces:
+    post:
+      operationId: createWorkspace
+      tags: [Metadata]
+      summary: Create workspace
+      description: Enterprise admins only. The requester becomes the workspace owner.
+      x-required-scopes: [workspacesAndBases:manage]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkspaceRequest'
+      responses:
+        '200':
+          description: Workspace created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+  /v0/meta/workspaces/{workspaceId}:
+    delete:
+      operationId: deleteWorkspace
+      tags: [Metadata]
+      summary: Delete workspace
+      description: Enterprise admins only. Bases in the workspace become inaccessible after deletion.
+      x-required-scopes: [workspacesAndBases:manage]
+      parameters:
+        - $ref: '#/components/parameters/WorkspaceId'
+      responses:
+        '200':
+          description: Workspace deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+  /v0/meta/whoami:
+    get:
+      operationId: getUserIdScopes
+      tags: [User]
+      summary: Get user info
+      description: Returns the token owner's user ID and, when applicable, email and OAuth scopes. No scopes required.
+      responses:
+        '200':
+          description: User info returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhoAmIResponse'
+  /v0/bases/{baseId}/webhooks:
+    get:
+      operationId: listWebhooks
+      tags: [Webhooks]
+      summary: List webhooks
+      description: Lists webhooks registered for a base, with their statuses.
+      x-required-scopes: [webhook:manage]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+      responses:
+        '200':
+          description: Webhooks returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWebhooksResponse'
+    post:
+      operationId: createWebhook
+      tags: [Webhooks]
+      summary: Create webhook
+      description: Creates a webhook. The MAC secret is returned only at creation. Limits - 10 webhooks per base; an OAuth integration can create 2 per base. Webhooks created with OAuth or personal access tokens expire after 7 days unless refreshed.
+      x-required-scopes: [depends on subscribed dataTypes]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookRequest'
+      responses:
+        '200':
+          description: Webhook created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWebhookResponse'
+  /v0/bases/{baseId}/webhooks/{webhookId}:
+    delete:
+      operationId: deleteWebhook
+      tags: [Webhooks]
+      summary: Delete webhook
+      description: Base creator role required. Response fields not described on the docs page.
+      x-required-scopes: [webhook:manage]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/WebhookId'
+      responses:
+        '200':
+          description: Webhook deleted. Response body not described on the docs page.
+  /v0/bases/{baseId}/webhooks/{webhookId}/enableNotifications:
+    post:
+      operationId: enableWebhookNotifications
+      tags: [Webhooks]
+      summary: Enable or disable webhook notifications
+      description: Base creator role required. Response body not described on the docs page.
+      x-required-scopes: [webhook:manage]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/WebhookId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnableNotificationsRequest'
+      responses:
+        '200':
+          description: Notification setting updated. Response body not described on the docs page.
+  /v0/bases/{baseId}/webhooks/{webhookId}/refresh:
+    post:
+      operationId: refreshWebhook
+      tags: [Webhooks]
+      summary: Refresh webhook
+      description: Extends the expiration of an active webhook with an expiration time to 7 days from the refresh. Base creator role required.
+      x-required-scopes: [webhook:manage]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/WebhookId'
+      responses:
+        '200':
+          description: Webhook refreshed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshWebhookResponse'
+  /v0/bases/{baseId}/webhooks/{webhookId}/payloads:
+    get:
+      operationId: listWebhookPayloads
+      tags: [Webhooks]
+      summary: List webhook payloads
+      description: Call after receiving a webhook ping. Extends the webhook expiration to 7 days from the call. Payloads are deleted after 1 week.
+      x-required-scopes: [depends on subscribed dataTypes]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/WebhookId'
+        - name: cursor
+          in: query
+          required: false
+          description: Transaction number to start from. Defaults to 1. Reuse the last returned cursor.
+          schema:
+            type: number
+        - name: limit
+          in: query
+          required: false
+          description: Maximum payloads to return. Hard maximum of 50.
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Payloads returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWebhookPayloadsResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}:
+    get:
+      operationId: getEnterprise
+      tags: [Enterprise]
+      summary: Get enterprise account
+      description: Enterprise admins only.
+      x-required-scopes: [enterprise.account:read]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - name: include
+          in: query
+          required: false
+          description: Adds aggregated or descendants data (Enterprise Hub only).
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [aggregated, descendants]
+      responses:
+        '200':
+          description: Enterprise account returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnterpriseAccount'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/descendants:
+    post:
+      operationId: createDescendantEnterprise
+      tags: [Enterprise]
+      summary: Create descendant enterprise
+      description: Creates a descendant enterprise account (org unit). Only root enterprise accounts with Enterprise Hub enabled can create descendants.
+      x-required-scopes: [enterprise.account:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDescendantEnterpriseRequest'
+      responses:
+        '200':
+          description: Descendant enterprise created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users:
+    get:
+      operationId: getUsersByIdOrEmail
+      tags: [Enterprise]
+      summary: Get users by ID or email
+      description: Either id or email is required.
+      x-required-scopes: [enterprise.user:read]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - name: id
+          in: query
+          required: false
+          description: User IDs. Required if email is not given.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: email
+          in: query
+          required: false
+          description: User emails. Required if id is not given.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: include
+          in: query
+          required: false
+          description: Adds collaborations, aggregated or descendants data.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [collaborations, aggregated, descendants]
+      responses:
+        '200':
+          description: Users returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}:
+    get:
+      operationId: getUserById
+      tags: [Enterprise]
+      summary: Get user by ID
+      x-required-scopes: [enterprise.user:read]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - $ref: '#/components/parameters/UserId'
+        - name: include
+          in: query
+          required: false
+          description: Adds the matching keys to the response.
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [collaborations, aggregated, descendants]
+      responses:
+        '200':
+          description: User returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnterpriseUser'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/claim:
+    post:
+      operationId: claimUsers
+      tags: [Enterprise]
+      summary: Claim users (manage user membership)
+      description: Unavailable if the enterprise is domain capturing. The user's domain must be verified.
+      x-required-scopes: [enterprise.user:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimUsersRequest'
+      responses:
+        '200':
+          description: Claim processed; per-user failures are listed in errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/grantAdminAccess:
+    post:
+      operationId: grantAdminAccess
+      tags: [Enterprise]
+      summary: Grant admin access
+      x-required-scopes: [enterprise.user:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserReferencesRequest'
+      responses:
+        '200':
+          description: Only failed users are listed in errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/revokeAdminAccess:
+    post:
+      operationId: revokeAdminAccess
+      tags: [Enterprise]
+      summary: Revoke admin access
+      description: Only directly assigned admin access can be revoked.
+      x-required-scopes: [enterprise.user:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserReferencesRequest'
+      responses:
+        '200':
+          description: Users that could not be processed are listed in errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorsResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/users/{userId}/remove:
+    post:
+      operationId: removeUserFromEnterprise
+      tags: [Enterprise]
+      summary: Remove user from enterprise
+      x-required-scopes: [enterprise.user:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveUserRequest'
+      responses:
+        '200':
+          description: User removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveUserResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveWorkspaces:
+    post:
+      operationId: moveWorkspaces
+      tags: [Enterprise]
+      summary: Move workspaces
+      description: Requires Enterprise Hub. Up to 100 workspace IDs per request.
+      x-required-scopes: [workspacesAndBases:manage]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveWorkspacesRequest'
+      responses:
+        '200':
+          description: Move processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveWorkspacesResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/moveGroups:
+    post:
+      operationId: moveUserGroups
+      tags: [Enterprise]
+      summary: Move user groups
+      description: Requires Enterprise Hub. Up to 100 group IDs per request.
+      x-required-scopes: [enterprise.groups:manage]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveGroupsRequest'
+      responses:
+        '200':
+          description: Move processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveGroupsResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/packages:
+    get:
+      operationId: listEnterprisePackages
+      tags: [Enterprise]
+      summary: List packages
+      x-required-scopes: [enterprise.account:read]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - name: shouldGetAllPackagesInGrid
+          in: query
+          required: false
+          description: If true and the account is the root enterprise, returns packages across the whole grid. Default false.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Packages returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPackagesResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/packages/{packageId}/install:
+    post:
+      operationId: createBaseFromPackage
+      tags: [Enterprise]
+      summary: Create base from package
+      x-required-scopes: [enterprise.account:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+        - $ref: '#/components/parameters/PackageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBaseFromPackageRequest'
+      responses:
+        '200':
+          description: Base created from package.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBaseResponse'
+  /v0/meta/enterpriseAccounts/{enterpriseAccountId}/workspaceAiAllowlist:
+    post:
+      operationId: updateWorkspaceAiAllowlist
+      tags: [Enterprise]
+      summary: Update workspace AI allowlist
+      description: Beta endpoint. Up to 10 workspaces per request.
+      x-required-scopes: [enterprise.account:write]
+      parameters:
+        - $ref: '#/components/parameters/EnterpriseAccountId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkspaceAiAllowlistRequest'
+      responses:
+        '200':
+          description: Update processed; per-workspace failures are listed in errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceErrorsResponse'
+  /scim/v2/Users:
+    servers:
+      - url: https://airtable.com
+        description: SCIM host (as documented)
+    post:
+      operationId: createScimUser
+      tags: [SCIM]
+      summary: Create SCIM user
+      description: Enterprise admins only. Off-domain provisioning requires the SSO extension with emailDomain.
+      x-required-scopes: [enterprise.scim.usersAndGroups:manage]
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+      responses:
+        '200':
+          description: SCIM user created.
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+  /scim/v2/Users/{userId}:
+    servers:
+      - url: https://airtable.com
+        description: SCIM host (as documented)
+    put:
+      operationId: putScimUser
+      tags: [SCIM]
+      summary: Replace SCIM user
+      description: Replaces all of a user's attributes.
+      x-required-scopes: [enterprise.scim.usersAndGroups:manage]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+      responses:
+        '200':
+          description: SCIM user updated.
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+    patch:
+      operationId: patchScimUser
+      tags: [SCIM]
+      summary: Patch SCIM user
+      x-required-scopes: [enterprise.scim.usersAndGroups:manage]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimPatchRequest'
+      responses:
+        '200':
+          description: SCIM user patched.
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+  /v0/{baseId}/{tableIdOrName}/listRecords:
+    post:
+      operationId: listRecordsPost
+      tags: [Records]
+      summary: List records (POST)
+      description: Same as listRecords, with parameters in the JSON body. Used when the GET URL would exceed 16,000 characters.
+      x-required-scopes: [data.records:read]
+      parameters:
+        - $ref: '#/components/parameters/BaseId'
+        - $ref: '#/components/parameters/TableIdOrName'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListRecordsRequest'
+      responses:
+        '200':
+          description: Records returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecordsResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Personal access token or OAuth integration token.
+  parameters:
+    BaseId:
+      name: baseId
+      in: path
+      required: true
+      description: Base ID.
+      schema:
+        type: string
+    TableIdOrName:
+      name: tableIdOrName
+      in: path
+      required: true
+      description: Table ID (recommended) or name.
+      schema:
+        type: string
+    TableId:
+      name: tableId
+      in: path
+      required: true
+      description: Table ID.
+      schema:
+        type: string
+    RecordId:
+      name: recordId
+      in: path
+      required: true
+      description: Record ID.
+      schema:
+        type: string
+    RowCommentId:
+      name: rowCommentId
+      in: path
+      required: true
+      description: Comment ID.
+      schema:
+        type: string
+    ColumnId:
+      name: columnId
+      in: path
+      required: true
+      description: Field ID.
+      schema:
+        type: string
+    ViewId:
+      name: viewId
+      in: path
+      required: true
+      description: View ID.
+      schema:
+        type: string
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      description: Workspace ID.
+      schema:
+        type: string
+    WebhookId:
+      name: webhookId
+      in: path
+      required: true
+      description: Webhook ID.
+      schema:
+        type: string
+    AttachmentFieldIdOrName:
+      name: attachmentFieldIdOrName
+      in: path
+      required: true
+      description: Attachment field ID or name.
+      schema:
+        type: string
+    EnterpriseAccountId:
+      name: enterpriseAccountId
+      in: path
+      required: true
+      description: Enterprise account ID.
+      schema:
+        type: string
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: User ID.
+      schema:
+        type: string
+    PackageId:
+      name: packageId
+      in: path
+      required: true
+      description: Package ID.
+      schema:
+        type: string
+  schemas:
+    SortSpec:
+      type: object
+      required: [field]
+      properties:
+        field:
+          type: string
+          description: Field name to sort on.
+        direction:
+          type: string
+          enum: [asc, desc]
+          description: Defaults to asc.
+    ListRecordsRequest:
+      type: object
+      description: Same parameters as the listRecords query string, sent as JSON.
+      properties:
+        timeZone:
+          type: string
+        userLocale:
+          type: string
+        pageSize:
+          type: number
+        maxRecords:
+          type: number
+        offset:
+          type: string
+        view:
+          type: string
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortSpec'
+        filterByFormula:
+          type: string
+        cellFormat:
+          type: string
+          enum: [json, string]
+        fields:
+          type: array
+          items:
+            type: string
+        returnFieldsByFieldId:
+          type: boolean
+        includeDateDependencyMetadata:
+          type: boolean
+        recordMetadata:
+          type: array
+          items:
+            type: string
+            enum: [commentCount]
+    ListRecordsResponse:
+      type: object
+      required: [records]
+      properties:
+        offset:
+          type: string
+          description: Present when more records exist.
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordObject'
+    RecordFields:
+      type: object
+      description: Cell values keyed by field name or ID (depending on returnFieldsByFieldId). Empty values are omitted.
+      additionalProperties:
+        description: type not stated on docs page
+    RecordObject:
+      type: object
+      required: [id, createdTime, fields]
+      properties:
+        id:
+          type: string
+        createdTime:
+          type: string
+          format: date-time
+        fields:
+          $ref: '#/components/schemas/RecordFields'
+        commentCount:
+          type: number
+          description: Present when recordMetadata includes commentCount.
+    Details:
+      type: object
+      required: [message, reasons]
+      properties:
+        message:
+          type: string
+          enum: [partialSuccess, cellsRedactedDueToLimitedPermissions]
+        reasons:
+          type: array
+          items:
+            type: string
+            enum: [attachmentsFailedUploading, attachmentUploadRateIsTooHigh, restrictedPermissions]
+    CreateRecordsRequest:
+      type: object
+      description: Provide fields to create one record, or records (each with fields) to create several.
+      properties:
+        fields:
+          $ref: '#/components/schemas/RecordFields'
+        records:
+          type: array
+          items:
+            type: object
+            required: [fields]
+            properties:
+              fields:
+                $ref: '#/components/schemas/RecordFields'
+        returnFieldsByFieldId:
+          type: boolean
+          default: false
+        typecast:
+          type: boolean
+          default: false
+          description: Best-effort conversion of string values to cell types.
+    CreateRecordsResponse:
+      oneOf:
+        - type: object
+          required: [records]
+          properties:
+            records:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecordObject'
+            details:
+              $ref: '#/components/schemas/Details'
+        - $ref: '#/components/schemas/RecordObject'
+    UpdateMultipleRecordsRequest:
+      type: object
+      required: [records]
+      properties:
+        performUpsert:
+          type: object
+          required: [fieldsToMergeOn]
+          properties:
+            fieldsToMergeOn:
+              type: array
+              minItems: 1
+              maxItems: 3
+              items:
+                type: string
+              description: 1 to 3 field names or IDs that uniquely identify a record. Computed fields are not allowed. Allowed types - number, text, long text, single select, multiple select, date.
+        returnFieldsByFieldId:
+          type: boolean
+          default: false
+        typecast:
+          type: boolean
+          default: false
+        records:
+          type: array
+          items:
+            type: object
+            required: [fields]
+            properties:
+              id:
+                type: string
+                description: Required when performUpsert is not set. Ignored for matching when performUpsert is set and the ID is given.
+              fields:
+                $ref: '#/components/schemas/RecordFields'
+    UpdateMultipleRecordsResponse:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecordObject'
+        details:
+          $ref: '#/components/schemas/Details'
+        createdRecords:
+          type: array
+          items:
+            type: string
+          description: IDs of newly created records (upsert only).
+        updatedRecords:
+          type: array
+          items:
+            type: string
+          description: IDs of updated existing records (upsert only).
+    DeleteMultipleRecordsResponse:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            required: [id, deleted]
+            properties:
+              id:
+                type: string
+              deleted:
+                type: boolean
+                const: true
+    UpdateRecordRequest:
+      type: object
+      required: [fields]
+      properties:
+        fields:
+          $ref: '#/components/schemas/RecordFields'
+        returnFieldsByFieldId:
+          type: boolean
+          default: false
+        typecast:
+          type: boolean
+          default: false
+    UploadAttachmentRequest:
+      type: object
+      required: [contentType, file, filename]
+      properties:
+        contentType:
+          type: string
+          maxLength: 255
+          description: MIME type, e.g. image/jpeg.
+        file:
+          type: string
+          description: Base64-encoded file contents. 5 MB limit.
+        filename:
+          type: string
+          description: e.g. foo.jpg
+    Comment:
+      type: object
+      required: [id, createdTime, lastUpdatedTime, text, author]
+      properties:
+        id:
+          type: string
+        createdTime:
+          type: string
+          format: date-time
+        lastUpdatedTime:
+          type: [string, 'null']
+          format: date-time
+          description: Null if never edited.
+        text:
+          type: string
+        parentCommentId:
+          type: string
+          description: Set for threaded replies.
+        mentioned:
+          type: object
+          description: Map of user ID to mentioned-user object.
+          additionalProperties:
+            type: object
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentAttachment'
+        reactions:
+          type: array
+          items:
+            type: object
+            required: [emoji, reactingUser]
+            properties:
+              emoji:
+                type: object
+                required: [unicodeCharacter]
+                properties:
+                  unicodeCharacter:
+                    type: string
+              reactingUser:
+                type: object
+                required: [userId, email]
+                properties:
+                  userId:
+                    type: string
+                  email:
+                    type: string
+                  name:
+                    type: string
+        author:
+          type: object
+          required: [id, email]
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+    CommentAttachment:
+      type: object
+      required: [id, filename, url]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        filename:
+          type: string
+        url:
+          type: string
+          description: Expires 2 hours after being returned.
+        width:
+          type: number
+        height:
+          type: number
+        size:
+          type: number
+        thumbnails:
+          type: object
+          properties:
+            small:
+              $ref: '#/components/schemas/Thumbnail'
+            large:
+              $ref: '#/components/schemas/Thumbnail'
+            full:
+              $ref: '#/components/schemas/Thumbnail'
+    Thumbnail:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        width:
+          type: number
+        height:
+          type: number
+    ListCommentsResponse:
+      type: object
+      required: [offset, comments]
+      properties:
+        offset:
+          type: [string, 'null']
+        comments:
+          type: array
+          description: Sorted newest to oldest.
+          items:
+            $ref: '#/components/schemas/Comment'
+    CreateCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          description: Use @[userId] for mentions.
+        parentCommentId:
+          type: string
+    UpdateCommentRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+    DeletedResponse:
+      type: object
+      required: [id, deleted]
+      properties:
+        id:
+          type: string
+        deleted:
+          type: boolean
+    IdResponse:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+    ErrorsResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            description: Error entry; the docs show id, email, type and message in various examples.
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+              type:
+                type: string
+              message:
+                type: string
+    WorkspaceErrorsResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required: [type, message, workspaceId]
+            properties:
+              type:
+                type: string
+              message:
+                type: string
+              workspaceId:
+                type: string
+    ListBasesResponse:
+      type: object
+      required: [bases]
+      properties:
+        bases:
+          type: array
+          items:
+            type: object
+            required: [id, name, permissionLevel]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              permissionLevel:
+                type: string
+                enum: [none, read, comment, edit, create, interfaceOnly]
+        offset:
+          type: string
+    CreateBaseRequest:
+      type: object
+      required: [name, workspaceId, tables]
+      properties:
+        name:
+          type: string
+        workspaceId:
+          type: string
+        tables:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TableConfig'
+    TableConfig:
+      type: object
+      required: [name, fields]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        fields:
+          type: array
+          minItems: 1
+          description: The first field becomes the primary field and must be a supported primary type.
+          items:
+            $ref: '#/components/schemas/FieldConfig'
+    FieldConfig:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          description: Unique within the table, case-insensitive.
+        type:
+          $ref: '#/components/schemas/FieldType'
+        description:
+          type: string
+        options:
+          type: object
+          description: Format depends on field type.
+          additionalProperties: true
+    FieldType:
+      type: string
+      enum: [autoNumber, barcode, button, checkbox, createdBy, createdTime, count, formula, lastModifiedTime, lastModifiedBy, lookup, number, percent, currency, duration, multilineText, phoneNumber, rating, richText, rollup, singleLineText, email, url, externalSyncSource, aiText, multipleRecordLinks, singleSelect, multipleSelects, singleCollaborator, multipleCollaborators, date, dateTime, multipleAttachments, multipleLookupValues]
+    BaseDetails:
+      type: object
+      required: [id, createdTime, name, permissionLevel, workspaceId]
+      properties:
+        id:
+          type: string
+        createdTime:
+          type: string
+          format: date-time
+        name:
+          type: string
+        permissionLevel:
+          type: string
+          enum: [none, read, comment, edit, create, owner]
+        workspaceId:
+          type: string
+        interfaces:
+          type: object
+          description: Keyed by interface ID.
+          additionalProperties:
+            type: object
+        collaborators:
+          type: object
+          description: Deprecated; use individualCollaborators and groupCollaborators.
+          additionalProperties: true
+        groupCollaborators:
+          type: object
+          additionalProperties: true
+        individualCollaborators:
+          type: object
+          additionalProperties: true
+        packageInstallations:
+          type: array
+          description: Requires include=packages.
+          items:
+            type: object
+            required: [id, installationType, packageId, packageReleaseId]
+            properties:
+              id:
+                type: string
+              installationType:
+                type: string
+                enum: [application, component]
+              packageId:
+                type: string
+              packageReleaseId:
+                type: [string, 'null']
+        sensitivityLabel:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+        inviteLinks:
+          type: object
+          additionalProperties: true
+    CreateBaseFromPackageRequest:
+      type: object
+      required: [name, packageReleaseId, workspaceId]
+      properties:
+        name:
+          type: string
+        packageReleaseId:
+          type: string
+        workspaceId:
+          type: string
+        description:
+          type: [string, 'null']
+    CreateBaseResponse:
+      type: object
+      required: [id, tables]
+      properties:
+        id:
+          type: string
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+    BaseSchemaResponse:
+      type: object
+      required: [tables]
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+    Table:
+      type: object
+      required: [id, name, primaryFieldId, fields, views]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        primaryFieldId:
+          type: string
+        dateDependencySettings:
+          type: object
+          description: Date-dependency settings; structure not stated on docs page.
+          additionalProperties: true
+        fields:
+          type: array
+          items:
+            type: object
+            required: [id, name]
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              type:
+                $ref: '#/components/schemas/FieldType'
+              description:
+                type: string
+              options:
+                description: type not stated on docs page
+        views:
+          type: array
+          items:
+            $ref: '#/components/schemas/View'
+    View:
+      type: object
+      required: [id, name, type]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [grid, form, calendar, gallery, kanban, timeline, block]
+          description: block is a Gantt view.
+        personalForUserId:
+          type: string
+          description: Present only for personal views.
+        visibleFieldIds:
+          type: array
+          items:
+            type: string
+          description: Grid views only, when requested with include=visibleFieldIds.
+    ListViewsResponse:
+      type: object
+      required: [views]
+      properties:
+        views:
+          type: array
+          items:
+            $ref: '#/components/schemas/View'
+    CreateTableRequest:
+      type: object
+      required: [name, fields]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        fields:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/FieldConfig'
+    UpdateTableRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          maxLength: 20000
+        dateDependencySettings:
+          type: object
+          description: Date-dependency settings; structure not stated on docs page.
+          additionalProperties: true
+    CreateFieldRequest:
+      type: object
+      required: [name, type]
+      description: One of 41 variants selected by type. Type-specific options are not all stated as schemas here.
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/FieldType'
+        description:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        options:
+          type: object
+          description: Type-specific options (required or optional depending on type).
+          additionalProperties: true
+    UpdateFieldRequest:
+      type: object
+      description: At least one property is required.
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          maxLength: 20000
+        options:
+          type: object
+          properties:
+            formula:
+              type: string
+              description: New formula (formula fields only). Fields may be referenced by ID or name.
+    FieldResponse:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/FieldType'
+        description:
+          type: string
+        options:
+          description: type not stated on docs page
+    CreateWorkspaceRequest:
+      type: object
+      required: [enterpriseAccountId, name]
+      properties:
+        enterpriseAccountId:
+          type: string
+        name:
+          type: string
+    WhoAmIResponse:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          description: Returned only with the user.email:read scope.
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Returned only for OAuth access tokens.
+    ListWebhooksResponse:
+      type: object
+      required: [webhooks]
+      properties:
+        webhooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
+    Webhook:
+      type: object
+      required: [id, areNotificationsEnabled, cursorForNextPayload, isHookEnabled, lastSuccessfulNotificationTime, notificationUrl, lastNotificationResult, specification]
+      properties:
+        id:
+          type: string
+        areNotificationsEnabled:
+          type: boolean
+        cursorForNextPayload:
+          type: number
+          description: Increases each time a new payload is generated.
+        isHookEnabled:
+          type: boolean
+          description: May be turned off automatically, for example when the specification becomes invalid.
+        lastSuccessfulNotificationTime:
+          type: [string, 'null']
+        notificationUrl:
+          type: [string, 'null']
+        expirationTime:
+          type: string
+          description: Null means no expiration (User API keys). Present when applicable.
+        lastNotificationResult:
+          type: [object, 'null']
+          description: Subfields not formally defined on docs page.
+          additionalProperties: true
+        specification:
+          type: object
+          required: [options]
+          properties:
+            options:
+              type: object
+              description: Filters and options. Full model is in the Webhooks-specification reference.
+              additionalProperties: true
+    CreateWebhookRequest:
+      type: object
+      required: [specification]
+      properties:
+        notificationUrl:
+          type: string
+        specification:
+          type: object
+          required: [options]
+          properties:
+            options:
+              type: object
+              required: [filters]
+              properties:
+                filters:
+                  type: object
+                  properties:
+                    dataTypes:
+                      type: array
+                      items:
+                        type: string
+                      description: Data types to subscribe to, e.g. tableData.
+                    recordChangeScope:
+                      type: string
+                      description: Table ID to scope record changes, e.g. tbl...
+    CreateWebhookResponse:
+      type: object
+      required: [id, macSecretBase64]
+      properties:
+        id:
+          type: string
+        macSecretBase64:
+          type: string
+          description: Returned only at creation.
+        expirationTime:
+          type: [string, 'null']
+          format: date-time
+    EnableNotificationsRequest:
+      type: object
+      required: [enable]
+      properties:
+        enable:
+          type: boolean
+    RefreshWebhookResponse:
+      type: object
+      required: [expirationTime]
+      properties:
+        expirationTime:
+          type: [string, 'null']
+          format: date-time
+    ListWebhookPayloadsResponse:
+      type: object
+      required: [cursor, mightHaveMore, payloads]
+      properties:
+        cursor:
+          type: number
+          description: Transaction number of the next payload.
+        mightHaveMore:
+          type: boolean
+        payloads:
+          type: array
+          items:
+            type: object
+            properties:
+              actionMetadata:
+                type: object
+                properties:
+                  source:
+                    type: string
+                  sourceMetadata:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                          id:
+                            type: string
+                          permissionLevel:
+                            type: string
+              baseTransactionNumber:
+                type: number
+              payloadFormat:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              changedTablesById:
+                description: type not stated on docs page
+    EnterpriseAccount:
+      type: object
+      required: [id, createdTime, rootEnterpriseAccountId, descendantEnterpriseAccountIds, emailDomains, groupIds, userIds, workspaceIds]
+      properties:
+        id:
+          type: string
+        createdTime:
+          type: string
+          format: date-time
+        rootEnterpriseAccountId:
+          type: string
+        descendantEnterpriseAccountIds:
+          type: array
+          items:
+            type: string
+        emailDomains:
+          type: array
+          items:
+            type: object
+            required: [emailDomain, isSsoRequired]
+            properties:
+              emailDomain:
+                type: string
+              isSsoRequired:
+                type: boolean
+        groupIds:
+          type: array
+          items:
+            type: string
+        userIds:
+          type: array
+          items:
+            type: string
+        workspaceIds:
+          type: array
+          items:
+            type: string
+        descendants:
+          type: object
+          description: Enterprise Hub only; returned with include=descendants.
+          additionalProperties:
+            $ref: '#/components/schemas/IdSetGroup'
+        aggregated:
+          $ref: '#/components/schemas/IdSetGroup'
+    IdSetGroup:
+      type: object
+      required: [groupIds, userIds, workspaceIds]
+      properties:
+        groupIds:
+          type: array
+          items:
+            type: string
+        userIds:
+          type: array
+          items:
+            type: string
+        workspaceIds:
+          type: array
+          items:
+            type: string
+    CreateDescendantEnterpriseRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    UsersResponse:
+      type: object
+      required: [users]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnterpriseUser'
+    EnterpriseUser:
+      type: object
+      required: [id, state, email, name, isServiceAccount, isSsoRequired, isTwoFactorAuthEnabled, lastActivityTime]
+      properties:
+        id:
+          type: string
+        state:
+          type: string
+          enum: [provisioned, deactivated]
+        email:
+          type: string
+        name:
+          type: string
+        isServiceAccount:
+          type: boolean
+        isSsoRequired:
+          type: boolean
+        isTwoFactorAuthEnabled:
+          type: boolean
+        lastActivityTime:
+          type: [string, 'null']
+        createdTime:
+          type: string
+          description: Internal users only.
+        invitedToAirtableByUserId:
+          type: [string, 'null']
+        enterpriseUserType:
+          type: string
+          enum: [accessReadOnlyShareLinks, full]
+        isAdmin:
+          type: boolean
+        isAgentUser:
+          type: boolean
+        isManaged:
+          type: boolean
+        isSuperAdmin:
+          type: boolean
+        licenseType:
+          type: string
+          enum: [editor, contributor, builder, viewer, viewerRestricted, portalEditor, none]
+        collaborations:
+          type: object
+          description: Direct collaborations (excludes group-based). Example keys - baseCollaborations, interfaceCollaborations, workspaceCollaborations.
+          additionalProperties: true
+        groups:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id:
+                type: string
+        descendants:
+          type: object
+          additionalProperties: true
+        aggregated:
+          type: object
+          additionalProperties: true
+    ClaimUsersRequest:
+      type: object
+      required: [users]
+      properties:
+        users:
+          type: array
+          items:
+            type: object
+            required: [state]
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+                description: Ignored if id is also given.
+              state:
+                type: string
+                enum: [managed, unmanaged]
+    UserReferencesRequest:
+      type: object
+      required: [users]
+      properties:
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              email:
+                type: string
+                description: Ignored if id is also given.
+    RemoveUserRequest:
+      type: object
+      properties:
+        removeFromDescendants:
+          type: boolean
+        replacementOwnerId:
+          type: string
+          description: Required if the user is sole owner of workspaces.
+        isDryRun:
+          type: boolean
+    RemoveUserResponse:
+      type: object
+      required: [wasUserRemovedAsAdmin, shared, unshared]
+      properties:
+        wasUserRemovedAsAdmin:
+          type: boolean
+        shared:
+          type: object
+          required: [workspaces]
+          properties:
+            workspaces:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+        unshared:
+          type: object
+          required: [bases, interfaces, workspaces]
+          properties:
+            bases:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            interfaces:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            workspaces:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+    MoveWorkspacesRequest:
+      type: object
+      required: [targetEnterpriseAccountId, workspaceIds]
+      properties:
+        targetEnterpriseAccountId:
+          type: string
+        workspaceIds:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+        replacementOwnerId:
+          type: string
+          description: Required only if the target restricts invites and a workspace has only non-member owners.
+    MoveWorkspacesResponse:
+      type: object
+      required: [movedWorkspaces, errors]
+      properties:
+        movedWorkspaces:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id:
+                type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required: [id, type, message]
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              message:
+                type: string
+    MoveGroupsRequest:
+      type: object
+      required: [targetEnterpriseAccountId, groupIds]
+      properties:
+        targetEnterpriseAccountId:
+          type: string
+        groupIds:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+    MoveGroupsResponse:
+      type: object
+      required: [errors, movedGroups]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required: [id, type, message]
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              message:
+                type: string
+        movedGroups:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id:
+                type: string
+              removedUserIds:
+                type: array
+                items:
+                  type: string
+                description: Present only if the target restricts invites to org unit members.
+    ListPackagesResponse:
+      type: object
+      required: [packages]
+      properties:
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              createdByUserId:
+                type: string
+              createdTime:
+                type: string
+              description:
+                type: [string, 'null']
+              enterpriseAccountId:
+                type: [string, 'null']
+              installCount:
+                type: number
+              lastUpdatedByUserId:
+                type: string
+              lastUpdatedTime:
+                type: string
+              latestReleaseId:
+                type: [string, 'null']
+              name:
+                type: string
+              sourceApplicationId:
+                type: string
+              tagline:
+                type: [string, 'null']
+    UpdateWorkspaceAiAllowlistRequest:
+      type: object
+      required: [workspaces]
+      properties:
+        includeDescendantWorkspaces:
+          type: boolean
+        workspaces:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            required: [isAllowed, workspaceId]
+            properties:
+              isAllowed:
+                type: boolean
+              workspaceId:
+                type: string
+    ScimUser:
+      type: object
+      description: SCIM User resource. Fields as documented on the create/put pages; the SSO extension urn carries emailDomain.
+      required: [schemas, userName]
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+        userName:
+          type: string
+          maxLength: 255
+        id:
+          type: string
+        active:
+          type: [boolean, 'null']
+        externalId:
+          type: [string, 'null']
+        password:
+          type: [string, 'null']
+        displayName:
+          type: [string, 'null']
+        emails:
+          type: [array, 'null']
+          items:
+            type: object
+            additionalProperties: true
+        urn:airtable:params:scim:schemas:extension:sso:2.0:User:
+          type: [object, 'null']
+          properties:
+            emailDomain:
+              type: string
+        urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:
+          type: [object, 'null']
+          description: Custom reporting fields (e.g. costCenter, department, division, manager, organization).
+          additionalProperties: true
+        name:
+          type: [object, 'null']
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+    ScimPatchRequest:
+      type: object
+      required: [schemas, Operations]
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Must include the SCIM PatchOp schema.
+        Operations:
+          type: array
+          items:
+            type: object
+            required: [op, path]
+            properties:
+              op:
+                type: string
+                enum: [add, replace, remove]
+              path:
+                type: string
+              value:
+                description: Not used for remove.

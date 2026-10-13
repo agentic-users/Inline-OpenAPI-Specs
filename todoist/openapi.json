@@ -1,0 +1,1719 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Todoist REST API",
+    "version": "v2",
+    "description": "OpenAPI description of the Todoist REST API v2, built from the reference at https://developer.todoist.com/rest/v2/ (not an official Todoist-published spec). Field types not stated on the docs page are left untyped and described as \"type not stated on docs page\"."
+  },
+  "servers": [
+    {
+      "url": "https://api.todoist.com/rest/v2",
+      "description": "Todoist REST API v2 base URL (from the docs)."
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Projects"
+    },
+    {
+      "name": "Sections"
+    },
+    {
+      "name": "Tasks"
+    },
+    {
+      "name": "Comments"
+    },
+    {
+      "name": "Labels"
+    }
+  ],
+  "paths": {
+    "/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "getProjects",
+        "summary": "Get all projects",
+        "description": "Returns all user projects as a JSON array.",
+        "responses": {
+          "200": {
+            "description": "Array of all user projects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "createProject",
+        "summary": "Create a new project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The new project as a JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProjectId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "getProject",
+        "summary": "Get a project",
+        "responses": {
+          "200": {
+            "description": "The project with the given ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "updateProject",
+        "summary": "Update a project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "deleteProject",
+        "summary": "Delete a project",
+        "description": "Deletes the project and all of its sections and tasks.",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/projects/{id}/archive": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProjectId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "archiveProject",
+        "summary": "Archive a project",
+        "description": "For personal projects, the project is hidden for the initiating user. For workspace projects, it is hidden for all workspace users.",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/projects/{id}/unarchive": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProjectId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "unarchiveProject",
+        "summary": "Unarchive a project",
+        "description": "Makes the project active again, for the initiating user (personal) or for all workspace users (workspace).",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/projects/{id}/collaborators": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProjectId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "getProjectCollaborators",
+        "summary": "Get all collaborators of a shared project",
+        "responses": {
+          "200": {
+            "description": "JSON array of the project's collaborators.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Collaborator"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sections": {
+      "get": {
+        "tags": [
+          "Sections"
+        ],
+        "operationId": "getSections",
+        "summary": "Get all sections",
+        "description": "Returns a JSON array of all sections.",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "description": "Filters sections by project ID.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of Section objects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Section"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sections"
+        ],
+        "operationId": "createSection",
+        "summary": "Create a new section",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created Section object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Section"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sections/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SectionId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Sections"
+        ],
+        "operationId": "getSection",
+        "summary": "Get a single section",
+        "responses": {
+          "200": {
+            "description": "A Section object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Section"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "Moved Permanently, if the section ID has changed. The new URL is in the Location header.",
+            "headers": {
+              "Location": {
+                "description": "New URL of the section.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sections"
+        ],
+        "operationId": "updateSection",
+        "summary": "Update a section",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated Section object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Section"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Sections"
+        ],
+        "operationId": "deleteSection",
+        "summary": "Delete a section",
+        "description": "Deletes a section and all of its tasks.",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "getTasks",
+        "summary": "Get active tasks",
+        "description": "Returns a JSON array of active tasks. If several parameters are sent, the API applies them in this order: filter (with or without lang), then ids, then label/project_id/section_id. Lower-priority parameters are ignored.",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by project ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by section ID.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "description": "Filter tasks by label name.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "required": false,
+            "description": "Filter by any supported filter. Multiple filters are not supported.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "description": "IETF language tag for the language the filter is written in, if not English.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "description": "Task IDs to retrieve, as a comma-separated list.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON array of active tasks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Task"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "createTask",
+        "summary": "Create a new task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created task as a JSON object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TaskId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "getTask",
+        "summary": "Get an active task by ID",
+        "description": "Returns one active (non-completed) task.",
+        "responses": {
+          "200": {
+            "description": "One active task.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "Moved Permanently, if the task ID has changed. The new URL is in the Location header.",
+            "headers": {
+              "Location": {
+                "description": "New URL of the task.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "updateTask",
+        "summary": "Update a task",
+        "description": "The Quickstart section of the docs says this request returns 204 with an empty body; the reference section says it returns the task JSON. The docs do not reconcile the two. Both are listed below.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated task (per the reference section).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content (per the Quickstart section)."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "deleteTask",
+        "summary": "Delete a task",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/tasks/{id}/close": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TaskId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "closeTask",
+        "summary": "Close (complete) a task",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/tasks/{id}/reopen": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TaskId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "reopenTask",
+        "summary": "Reopen a completed task",
+        "description": "Ancestor tasks or sections are also marked as uncompleted and restored. Restored items are placed at the end of their parent's active list.",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/comments": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "operationId": "getComments",
+        "summary": "Get all comments",
+        "description": "Returns a JSON array of all comments for a given task or project.",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "description": "Filters comments by project. Required unless task_id is given.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "description": "Filters comments by task. Required unless project_id is given.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of Comment objects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Comment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "operationId": "createComment",
+        "summary": "Create a new comment",
+        "description": "Creates a comment on a project or task.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created Comment object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comments/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CommentId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "operationId": "getComment",
+        "summary": "Get a comment",
+        "responses": {
+          "200": {
+            "description": "A Comment object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "operationId": "updateComment",
+        "summary": "Update a comment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated Comment object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Comments"
+        ],
+        "operationId": "deleteComment",
+        "summary": "Delete a comment",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/labels": {
+      "get": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "getPersonalLabels",
+        "summary": "Get all personal labels",
+        "description": "Returns all of the user's personal labels as an array.",
+        "responses": {
+          "200": {
+            "description": "Array of personal Label objects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Label"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "createPersonalLabel",
+        "summary": "Create a new personal label",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created label object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Label"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labels/{label_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/LabelId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "getPersonalLabel",
+        "summary": "Get a personal label",
+        "responses": {
+          "200": {
+            "description": "The label object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Label"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "updatePersonalLabel",
+        "summary": "Update a personal label",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LabelUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated label object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Label"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "deletePersonalLabel",
+        "summary": "Delete a personal label",
+        "description": "Deletes the label and removes it from all tasks that use it.",
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/labels/shared": {
+      "get": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "getSharedLabels",
+        "summary": "Get all shared labels",
+        "description": "Returns the names of all labels currently assigned to tasks. Personal label names are included by default.",
+        "parameters": [
+          {
+            "name": "omit_personal",
+            "in": "query",
+            "required": false,
+            "description": "Excludes personal label names when true. Default is false.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of label names (type inferred from the example on the docs page).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labels/shared/rename": {
+      "post": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "renameSharedLabel",
+        "summary": "Rename shared labels",
+        "description": "Renames all instances of a shared label.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedLabelRename"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    },
+    "/labels/shared/remove": {
+      "post": {
+        "tags": [
+          "Labels"
+        ],
+        "operationId": "removeSharedLabel",
+        "summary": "Remove shared labels",
+        "description": "Removes all instances of a shared label from the tasks where it is applied. The request succeeds even if no matching label is found.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedLabelRemove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal API token from the integrations settings for your account, or an OAuth token for other users. Sent as \"Authorization: Bearer $token\"."
+      }
+    },
+    "parameters": {
+      "ProjectId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Project ID, taken from the URL. Type not stated on docs page.",
+        "schema": {
+          "description": "type not stated on docs page"
+        }
+      },
+      "SectionId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Section ID, taken from the URL. Type not stated on docs page.",
+        "schema": {
+          "description": "type not stated on docs page"
+        }
+      },
+      "TaskId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Task ID, taken from the URL. Type not stated on docs page.",
+        "schema": {
+          "description": "type not stated on docs page"
+        }
+      },
+      "CommentId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Comment ID, taken from the URL. Type not stated on docs page.",
+        "schema": {
+          "description": "type not stated on docs page"
+        }
+      },
+      "LabelId": {
+        "name": "label_id",
+        "in": "path",
+        "required": true,
+        "description": "Personal label ID. Type not stated on docs page.",
+        "schema": {
+          "description": "type not stated on docs page"
+        }
+      }
+    },
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "description": "Project object, from the Properties table and example on the docs page.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Project ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Project name."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent project ID; null for top-level projects."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Position under the same parent. Read-only."
+          },
+          "comment_count": {
+            "type": "integer",
+            "description": "Number of project comments."
+          },
+          "is_shared": {
+            "type": "boolean",
+            "description": "Whether the project is shared. Read-only."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the project is a favorite."
+          },
+          "is_inbox_project": {
+            "type": "boolean",
+            "description": "Whether the project is the Inbox. Read-only."
+          },
+          "is_team_inbox": {
+            "type": "boolean",
+            "description": "Whether the project is the Team Inbox. Read-only."
+          },
+          "view_style": {
+            "type": "string",
+            "description": "`list` or `board`."
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the project in Todoist."
+          }
+        }
+      },
+      "ProjectCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the project."
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent project ID."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the project is a favorite."
+          },
+          "view_style": {
+            "type": "string",
+            "description": "`list` or `board`; default `list`."
+          }
+        }
+      },
+      "ProjectUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the project."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the project is a favorite."
+          },
+          "view_style": {
+            "type": "string",
+            "description": "`list` or `board`."
+          }
+        }
+      },
+      "Collaborator": {
+        "type": "object",
+        "description": "Collaborator fields are shown only in the example on the docs page; types not stated.",
+        "properties": {
+          "id": {
+            "description": "type not stated on docs page"
+          },
+          "name": {
+            "description": "type not stated on docs page"
+          },
+          "email": {
+            "description": "type not stated on docs page"
+          }
+        }
+      },
+      "Section": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Section ID."
+          },
+          "project_id": {
+            "type": "string",
+            "description": "ID of the project the section belongs to."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Section position among other sections in the same project."
+          },
+          "name": {
+            "type": "string",
+            "description": "Section name."
+          }
+        }
+      },
+      "SectionCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "project_id"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Section name."
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project the section should belong to."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Position among other sections in the project."
+          }
+        }
+      },
+      "SectionUpdate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Section name."
+          }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Task ID."
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project ID. Read-only."
+          },
+          "section_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Section ID. Read-only. Null if the task has no section."
+          },
+          "content": {
+            "type": "string",
+            "description": "Task content. Supports markdown and hyperlinks."
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description. Supports markdown and hyperlinks."
+          },
+          "is_completed": {
+            "type": "boolean",
+            "description": "Whether the task is completed."
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Label names (personal or shared)."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent task ID. Read-only. Null for top-level tasks."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Position under the same parent or project (top-level tasks). Read-only."
+          },
+          "priority": {
+            "type": "integer",
+            "description": "1 (normal, default) to 4 (urgent)."
+          },
+          "due": {
+            "$ref": "#/components/schemas/Due"
+          },
+          "deadline": {
+            "$ref": "#/components/schemas/Deadline"
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the task in Todoist. Read-only."
+          },
+          "comment_count": {
+            "type": "integer",
+            "description": "Number of comments. Read-only."
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation date. Read-only."
+          },
+          "creator_id": {
+            "type": "string",
+            "description": "ID of the user who created the task. Read-only."
+          },
+          "assignee_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Responsible user ID. Null if unassigned."
+          },
+          "assigner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ID of the user who assigned the task. Read-only. Null if unassigned."
+          },
+          "duration": {
+            "$ref": "#/components/schemas/Duration"
+          }
+        }
+      },
+      "TaskCreate": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Task content. Supports markdown and hyperlinks."
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description. Supports markdown and hyperlinks."
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project ID. If omitted, the task goes to the user's Inbox."
+          },
+          "section_id": {
+            "type": "string",
+            "description": "ID of the section to place the task in."
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent task ID."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Non-zero integer used by clients to sort tasks under the same parent."
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Label names (personal or shared)."
+          },
+          "priority": {
+            "type": "integer",
+            "description": "1 (normal) to 4 (urgent)."
+          },
+          "due_string": {
+            "type": "string",
+            "description": "Human-defined due date (e.g., \"next Monday\"). Set in local time, not UTC."
+          },
+          "due_date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, relative to the user's timezone."
+          },
+          "due_datetime": {
+            "type": "string",
+            "description": "Date and time in RFC3339 format, UTC."
+          },
+          "due_lang": {
+            "type": "string",
+            "description": "2-letter language code for due_string if it is not in English."
+          },
+          "assignee_id": {
+            "type": "string",
+            "description": "Responsible user ID (shared tasks only)."
+          },
+          "duration": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Positive integer (greater than zero). Requires duration_unit."
+          },
+          "duration_unit": {
+            "type": "string",
+            "enum": [
+              "minute",
+              "day"
+            ],
+            "description": "Requires duration."
+          },
+          "deadline_date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, relative to the user's timezone."
+          }
+        },
+        "description": "Only one due_* field can be used at a time. due_lang is the exception."
+      },
+      "TaskUpdate": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Task content. Supports markdown and hyperlinks."
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description. Supports markdown and hyperlinks."
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Label names (personal or shared)."
+          },
+          "priority": {
+            "type": "integer",
+            "description": "1 (normal) to 4 (urgent)."
+          },
+          "due_string": {
+            "type": "string",
+            "description": "Human-defined due date. Set in local time. Sending \"no date\" or \"no due date\" removes the date."
+          },
+          "due_date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, relative to the user's timezone."
+          },
+          "due_datetime": {
+            "type": "string",
+            "description": "Date and time in RFC3339 format, UTC."
+          },
+          "due_lang": {
+            "type": "string",
+            "description": "2-letter language code for due_string if it is not in English."
+          },
+          "assignee_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Responsible user ID, or null to unassign (shared tasks)."
+          },
+          "duration": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "description": "Positive integer, or null to unset. Requires duration_unit."
+          },
+          "duration_unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "minute",
+              "day",
+              null
+            ],
+            "description": "minute or day, or null to unset. Requires duration."
+          },
+          "deadline_date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, relative to the user's timezone."
+          }
+        },
+        "description": "Only one due_* field can be used at a time. due_lang is the exception."
+      },
+      "Due": {
+        "type": "object",
+        "description": "Due object. Null if no date is set.",
+        "required": [
+          "string",
+          "date",
+          "is_recurring"
+        ],
+        "properties": {
+          "string": {
+            "type": "string",
+            "description": "Human-defined date in any format."
+          },
+          "date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, adjusted to the user's timezone."
+          },
+          "is_recurring": {
+            "type": "boolean",
+            "description": "Whether the due date recurs."
+          },
+          "datetime": {
+            "type": "string",
+            "description": "Returned only when an exact time is set. RFC3339, UTC."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Returned only when an exact time is set. Either a tzdata name (e.g., \"Europe/Berlin\") or a \"UTC±HH:MM\" offset."
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "en",
+              "da",
+              "pl",
+              "zh",
+              "ko",
+              "de",
+              "pt",
+              "ja",
+              "it",
+              "fr",
+              "sv",
+              "ru",
+              "es",
+              "nl",
+              "fi",
+              "nb",
+              "tw"
+            ],
+            "description": "Language used to parse the string field."
+          }
+        }
+      },
+      "Deadline": {
+        "type": "object",
+        "description": "Deadline object. Null if no deadline is set.",
+        "required": [
+          "date"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Date in YYYY-MM-DD format, adjusted to the user's timezone."
+          }
+        }
+      },
+      "Duration": {
+        "type": "object",
+        "description": "Estimated duration. Null if none is set. Both amount and unit must be set.",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Length of time the task takes (positive integer)."
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "minute",
+              "day"
+            ],
+            "description": "Either minute or day."
+          }
+        }
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Comment ID."
+          },
+          "task_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Task ID the comment belongs to. Null if the comment belongs to a project."
+          },
+          "project_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Project ID the comment belongs to. Null if the comment belongs to a task."
+          },
+          "posted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the comment was added, in RFC 3339 format in UTC."
+          },
+          "content": {
+            "type": "string",
+            "description": "Comment text. May contain markdown and hyperlinks."
+          },
+          "attachment": {
+            "$ref": "#/components/schemas/Attachment"
+          }
+        }
+      },
+      "CommentCreate": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Task the comment belongs to. Required unless project_id is given."
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Project the comment belongs to. Required unless task_id is given."
+          },
+          "content": {
+            "type": "string",
+            "description": "Comment text."
+          },
+          "attachment": {
+            "$ref": "#/components/schemas/Attachment"
+          }
+        }
+      },
+      "CommentUpdate": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "New comment text."
+          }
+        }
+      },
+      "Attachment": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Attachment metadata. Null if there is no attachment. The page says the format depends on the attachment kind and refers to the Sync API docs.",
+        "properties": {
+          "file_name": {
+            "description": "type not stated on docs page. Example value \"File.pdf\"."
+          },
+          "file_type": {
+            "description": "type not stated on docs page. Example value \"application/pdf\"."
+          },
+          "file_url": {
+            "description": "type not stated on docs page. URL of the file."
+          },
+          "resource_type": {
+            "description": "type not stated on docs page. Example value \"file\"."
+          }
+        }
+      },
+      "Label": {
+        "type": "object",
+        "description": "Personal label object. The docs note these properties apply only to personal labels.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Label ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Label name."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Number clients use to sort labels."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the label is a favorite."
+          }
+        }
+      },
+      "LabelCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the label."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Sort order of the label."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the label is a favorite."
+          }
+        }
+      },
+      "LabelUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New name of the label."
+          },
+          "order": {
+            "type": "integer",
+            "description": "Sort order of the label."
+          },
+          "color": {
+            "type": "string",
+            "description": "Icon color, per the Colors guide."
+          },
+          "is_favorite": {
+            "type": "boolean",
+            "description": "Whether the label is a favorite."
+          }
+        }
+      },
+      "SharedLabelRename": {
+        "type": "object",
+        "required": [
+          "name",
+          "new_name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Existing label name to rename."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "New label name."
+          }
+        }
+      },
+      "SharedLabelRemove": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the label to remove."
+          }
+        }
+      }
+    }
+  }
+}
