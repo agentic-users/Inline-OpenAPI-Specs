@@ -1,12 +1,15 @@
 # Inline OpenAPI Specs
 
-A library of OpenAPI descriptions for use with Inline's **Add a REST API** feature. Each folder holds one API's spec, in YAML and JSON.
+A library of OpenAPI descriptions for use with Inline's **Add a REST API** feature. Each folder holds one API's spec (JSON, and YAML where available).
 
 ## Available APIs
 
 | API | Version | Methods | Files |
 |---|---|---|---|
 | Slack Web API | built 2026-10-12 | 340 | [`slack/openapi.yaml`](slack/openapi.yaml), [`slack/openapi.json`](slack/openapi.json) |
+| Airtable Web API | built 2026-10-12 | 51 operations | [`airtable/openapi.yaml`](airtable/openapi.yaml), [`airtable/openapi.json`](airtable/openapi.json) |
+| Todoist REST API v2 | built 2026-10-12 | 33 operations | [`todoist/openapi.yaml`](todoist/openapi.yaml), [`todoist/openapi.json`](todoist/openapi.json) |
+| Higgsfield API | unofficial copy | 50 operations | [`higgsfield/openapi.json`](higgsfield/openapi.json) |
 
 ## Loading a spec into Inline
 
