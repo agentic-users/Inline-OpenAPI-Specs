@@ -2,10 +2,17 @@ openapi: 3.0.3
 info:
   title: Higgsfield API
   version: 1.0.0
-  description: Unofficial copy. Not verified against Higgsfield's documentation (docs.higgsfield.ai). The source file had
+  description: 'Unofficial copy. Not verified against Higgsfield''s documentation (docs.higgsfield.ai). The source file had
     no info.version, so the version is a placeholder.
+
+
+    How to connect in Inline: choose ''Each person adds their own key''; in Advanced, set ''How is the key sent'' to ''API
+    key in a header'' with the header name Authorization; confirm the address is https://api.higgsfield.ai. Then press ''Add
+    your key'' on the source and paste the whole value exactly as `Key <api_key_id>:<api_key_secret>`. Test with get_request_status
+    and the request ID 00000000-0000-0000-0000-000000000000: ''Not found'' means the key works; ''Invalid credentials'' means
+    the key value is wrong. Changing the address later removes everyone''s saved key, so add it again.'
 servers:
-- url: https://platform.higgsfield.ai
+- url: https://api.higgsfield.ai
 security:
 - authKey: []
 paths:
@@ -27,7 +34,7 @@ paths:
           $ref: '#/components/schemas/RequestStatus'
   /requests/{request_id}/cancel:
     post:
-      summary: Get Generation Status
+      summary: Cancel a queued request
       operationId: cancel_request
       parameters:
       - name: request_id
@@ -2236,6 +2243,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RequestStatus'
+  /higgsfield-ai/soul/v2/standard:
+    post:
+      summary: Soul 2 standard text-to-image
+      description: Documented in the Higgsfield quickstart. Only `prompt` is confirmed there; other parameters for this path
+        are not documented on the pages checked. `Idempotency-Key` is optional and makes retries safe.
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+        description: Optional. Reuse the same value when retrying a submission so it is not created twice.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - prompt
+              properties:
+                prompt:
+                  type: string
+      responses:
+        '200':
+          description: The request status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestStatus'
+  /estimate/higgsfield-ai/soul/v2/standard:
+    post:
+      summary: Estimate credits for a Soul 2 standard generation (read-only; nothing is generated or charged)
+      description: Returns the credit and USD cost of a generation before you submit it. Per the Higgsfield billing docs,
+        the estimate for your own account is the authoritative amount. Only `credits` and `usd` are documented; other response
+        fields are not confirmed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - prompt
+              properties:
+                prompt:
+                  type: string
+      responses:
+        '200':
+          description: Estimate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credits:
+                    type: string
+                    description: Estimated credits, e.g. "1.500".
+                  usd:
+                    type: string
+                    description: Estimated cost in USD, e.g. "0.094".
 components:
   schemas:
     RequestStatus:
@@ -2269,6 +2337,8 @@ components:
       type: apiKey
       in: header
       name: Authorization
-      description: '{api_key_id}:{api_key_secret}'
+      description: 'The whole header value must be `Key <api_key_id>:<api_key_secret>`: the word Key, a single space, the
+        key ID, a colon, then the secret. The ID is 36 characters and the secret is 64. Create keys on the Higgsfield platform''s
+        API keys page (https://console.higgsfield.ai).'
 x-mcp:
   enabled: true
