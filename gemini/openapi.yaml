@@ -1,0 +1,6666 @@
+openapi: 3.0.3
+info:
+  title: Gemini API
+  version: 1.0.0
+  description: 'Unofficial OpenAPI description of the Gemini API (Google AI Studio / generativelanguage.googleapis.com),
+    written from Google''s published API reference at https://ai.google.dev/api and, for the generateContent
+    content types, the googleapis proto definitions. Operations are tagged by AI Studio category.
+
+
+    Not included: Live API and Live Music API (WebSocket), tuned models, corpora and other resources the
+    reference lists without method details.
+
+
+    How to connect in Inline: choose an API key in a header, header name `x-goog-api-key`, and paste a
+    key from https://aistudio.google.com/apikey. Many generation calls spend billable quota.'
+servers:
+- url: https://generativelanguage.googleapis.com
+security:
+- apiKeyHeader: []
+tags:
+- name: Gemini
+  description: 'Text and multimodal generation: generateContent, Interactions API, token counting, embeddings,
+    and the model catalog.'
+- name: Images
+  description: Image generation (Imagen predict).
+- name: Video
+  description: Video generation (Veo predictLongRunning) and its long-running operations.
+- name: Audio
+  description: Voices for speech output. Audio and speech generation itself goes through createInteraction
+    (Gemini tag).
+- name: Agents
+  description: Agents, environments, triggers, webhooks and credentials.
+- name: Platform
+  description: Files, batches, context caching and File Search stores.
+paths:
+  /v1beta/models/{model}:generateContent:
+    post:
+      operationId: generateContent
+      summary: Generate a model response from a GenerateContentRequest
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateContentRequest'
+      responses:
+        '200':
+          description: A GenerateContentResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateContentResponse'
+  /v1beta/models/{model}:streamGenerateContent:
+    post:
+      operationId: streamGenerateContent
+      summary: Generate a streamed response (stream of GenerateContentResponse instances)
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateContentRequest'
+      responses:
+        '200':
+          description: A stream of GenerateContentResponse instances (JSON array of chunks)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenerateContentResponse'
+  /v1beta/models/{model}:countTokens:
+    post:
+      operationId: countTokens
+      summary: Run the model tokenizer on input content and return the token count
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CountTokensRequest'
+      responses:
+        '200':
+          description: A CountTokensResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountTokensResponse'
+  /v1beta/models/{model}:embedContent:
+    post:
+      operationId: embedContent
+      summary: Generate a text embedding vector from input content
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedContentRequest'
+      responses:
+        '200':
+          description: An EmbedContentResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedContentResponse'
+  /v1beta/models/{model}:batchEmbedContents:
+    post:
+      operationId: batchEmbedContents
+      summary: Generate multiple embedding vectors from input content in one synchronous call
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchEmbedContentsRequest'
+      responses:
+        '200':
+          description: A BatchEmbedContentsResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchEmbedContentsResponse'
+  /v1beta/models/{model}:asyncBatchEmbedContent:
+    post:
+      operationId: asyncBatchEmbedContent
+      summary: Enqueue a batch of embedContent requests for asynchronous processing
+      description: The docs name the path parameter batch.model (format models/{model}); the request body
+        is an EmbedContentBatch. Returns a long-running Operation.
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsyncBatchEmbedContentRequest'
+      responses:
+        '200':
+          description: A long-running Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/models:
+    get:
+      operationId: listModels
+      summary: List the models available through the Gemini API
+      tags:
+      - Gemini
+      parameters:
+      - name: pageSize
+        in: query
+        required: false
+        description: Maximum number of models to return per page. Defaults to 50 and is capped at 1000.
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: A page token received from a previous models.list call. All other parameters must
+          match the original call.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A ListModelsResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListModelsResponse'
+  /v1beta/models/{model}:
+    get:
+      operationId: getModel
+      summary: Get information about a specific model
+      tags:
+      - Gemini
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      responses:
+        '200':
+          description: A Model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+  /v1beta/models/{model}:predict:
+    post:
+      operationId: predict
+      summary: Perform a prediction request (used by Imagen models)
+      description: 'Per the models docs, instances and parameters are generic Value types. Note: the Gemini
+        docs state that Imagen is now shut down.'
+      tags:
+      - Images
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictRequest'
+      responses:
+        '200':
+          description: A PredictResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictResponse'
+  /v1beta/models/{model}:predictLongRunning:
+    post:
+      operationId: predictLongRunning
+      summary: Start a long-running prediction (used by Veo video models)
+      tags:
+      - Video
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictLongRunningRequest'
+      responses:
+        '200':
+          description: A long-running Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/models/{model}/operations/{operation}:
+    get:
+      operationId: getVideoOperation
+      summary: Poll a long-running operation started by predictLongRunning
+      description: The Veo guide polls GET {BASE_URL}/{operation_name} where operation_name is the name
+        returned by predictLongRunning. The path pattern models/*/operations/* is inferred from that usage;
+        it is not listed in the API reference method tables.
+      tags:
+      - Video
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      - name: operation
+        in: path
+        required: true
+        description: Operation id (last segment of the operation name)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Operation; when done is true, response holds generateVideoResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/cachedContents:
+    post:
+      operationId: createCachedContent
+      summary: Create a CachedContent resource
+      tags:
+      - Platform
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CachedContent'
+      responses:
+        '200':
+          description: The newly created CachedContent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CachedContent'
+    get:
+      operationId: listCachedContents
+      summary: List CachedContents
+      tags:
+      - Platform
+      parameters:
+      - name: pageSize
+        in: query
+        required: false
+        description: Maximum number of cached contents to return
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: Page token from a previous cachedContents.list call
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A ListCachedContentsResponse
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCachedContentsResponse'
+  /v1beta/cachedContents/{cachedContent}:
+    get:
+      operationId: getCachedContent
+      summary: Read a CachedContent resource
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/CachedContentPath'
+      responses:
+        '200':
+          description: A CachedContent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CachedContent'
+    patch:
+      operationId: updateCachedContent
+      summary: Update a CachedContent resource (only expiration is updatable)
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/CachedContentPath'
+      - name: updateMask
+        in: query
+        required: false
+        description: The list of fields to update (FieldMask, comma-separated string)
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CachedContent'
+      responses:
+        '200':
+          description: The updated CachedContent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CachedContent'
+    delete:
+      operationId: deleteCachedContent
+      summary: Delete a CachedContent resource
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/CachedContentPath'
+      responses:
+        '200':
+          description: An empty JSON object
+          content:
+            application/json:
+              schema:
+                type: object
+  /v1beta/interactions:
+    post:
+      operationId: createInteraction
+      summary: Create an interaction (model or agent; text, audio, image, video; optional streaming)
+      description: Creates a new interaction. Provide either model or agent. Set stream=true to receive
+        server-sent events (InteractionSseEvent); set background=true for background execution.
+      tags:
+      - Gemini
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInteractionRequest'
+      responses:
+        '200':
+          description: The created Interaction. When stream=true the response is a text/event-stream of
+            InteractionSseEvent objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interaction'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/InteractionSseEvent'
+  /v1beta/interactions/{interactionsId}:
+    get:
+      operationId: getInteractionById
+      summary: Retrieve an interaction by ID (optionally streamed)
+      tags:
+      - Gemini
+      parameters:
+      - name: interactionsId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: include_input
+        in: query
+        required: false
+        description: If true, include the input in the response.
+        schema:
+          type: boolean
+      - name: last_event_id
+        in: query
+        required: false
+        description: Event ID to resume the stream from. Requires stream=true.
+        schema:
+          type: string
+      - name: stream
+        in: query
+        required: false
+        description: If true, stream the interaction as server-sent events.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: The Interaction (or an SSE stream of InteractionSseEvent when stream=true).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interaction'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/InteractionSseEvent'
+    delete:
+      operationId: deleteInteraction
+      summary: Delete an interaction
+      tags:
+      - Gemini
+      parameters:
+      - name: interactionsId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response on success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/interactions/{interactionsId}/cancel:
+    post:
+      operationId: cancelInteractionById
+      summary: Cancel a running background interaction
+      tags:
+      - Gemini
+      parameters:
+      - name: interactionsId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The (cancelled) Interaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interaction'
+  /v1beta/agents:
+    post:
+      operationId: createAgent
+      summary: Create an agent
+      tags:
+      - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '200':
+          description: The created Agent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+    get:
+      operationId: listAgents
+      summary: List agents
+      tags:
+      - Agents
+      parameters:
+      - name: page_size
+        in: query
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      - name: parent
+        in: query
+        description: Format projects/{project}/locations/{location}. Described as required on the page
+          but listed as optional in the field list.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of agents.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListAgentsResponse'
+  /v1beta/agents/{agentsId}:
+    get:
+      operationId: getAgent
+      summary: Get an agent
+      tags:
+      - Agents
+      parameters:
+      - name: agentsId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Agent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+    delete:
+      operationId: deleteAgent
+      summary: Delete an agent
+      tags:
+      - Agents
+      parameters:
+      - name: agentsId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response on success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/webhooks:
+    post:
+      operationId: createWebhook
+      summary: Create a webhook
+      tags:
+      - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookRequest'
+      responses:
+        '200':
+          description: The created Webhook; new_signing_secret is populated only on create.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+    get:
+      operationId: listWebhooks
+      summary: List webhooks
+      tags:
+      - Agents
+      parameters:
+      - name: page_size
+        in: query
+        description: Default 50; maximum 1000.
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of webhooks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWebhooksResponse'
+  /v1beta/webhooks/{id}:ping:
+    post:
+      operationId: pingWebhook
+      summary: Send a test ping event to a webhook
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/webhooks/{id}:rotateSigningSecret:
+    post:
+      operationId: rotateWebhookSigningSecret
+      summary: Rotate a webhook signing secret
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RotateSigningSecretRequest'
+      responses:
+        '200':
+          description: The newly generated secret.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RotateSigningSecretResponse'
+  /v1beta/webhooks/{id}:
+    get:
+      operationId: getWebhook
+      summary: Get a webhook
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+    patch:
+      operationId: updateWebhook
+      summary: Update a webhook
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: update_mask
+        in: query
+        description: Fields to update.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhookRequest'
+      responses:
+        '200':
+          description: The updated Webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+    delete:
+      operationId: deleteWebhook
+      summary: Delete a webhook
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/triggers:
+    post:
+      operationId: createTrigger
+      summary: Create a scheduled trigger
+      tags:
+      - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTriggerRequest'
+      responses:
+        '200':
+          description: The created Trigger.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+    get:
+      operationId: listTriggers
+      summary: List triggers
+      tags:
+      - Agents
+      parameters:
+      - name: filter
+        in: query
+        description: Filter, for example by state. Syntax not documented.
+        schema:
+          type: string
+      - name: page_size
+        in: query
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of triggers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTriggersResponse'
+  /v1beta/triggers/{triggerId}/executions:
+    post:
+      operationId: runTrigger
+      summary: Run a trigger now (create an execution)
+      tags:
+      - Agents
+      parameters:
+      - name: triggerId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The created TriggerExecution.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriggerExecution'
+    get:
+      operationId: listTriggerExecutions
+      summary: List executions of a trigger
+      tags:
+      - Agents
+      parameters:
+      - name: triggerId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page_size
+        in: query
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of trigger executions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTriggerExecutionsResponse'
+  /v1beta/triggers/{id}:
+    get:
+      operationId: getTrigger
+      summary: Get a trigger
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Trigger.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+    patch:
+      operationId: updateTrigger
+      summary: Update a trigger (display name or status)
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTriggerRequest'
+      responses:
+        '200':
+          description: The updated Trigger.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+    delete:
+      operationId: deleteTrigger
+      summary: Delete a trigger
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/environments:
+    post:
+      operationId: createEnvironment
+      summary: Create an environment (from sources or by copying another environment)
+      tags:
+      - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvironmentRequest'
+      responses:
+        '200':
+          description: The created Environment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Environment'
+    get:
+      operationId: listEnvironments
+      summary: List environments
+      tags:
+      - Agents
+      parameters:
+      - name: page_size
+        in: query
+        description: Default 50; maximum 1000.
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of environments.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvironmentsResponse'
+  /v1beta/environments/{environment}/files/{path}:
+    get:
+      operationId: getEnvironmentFiles
+      summary: Get file metadata or a directory listing from an environment
+      description: Returns metadata for a file or lists a directory. File contents are downloaded via
+        a download URL (the page mentions alt=media, which is not defined as a parameter there).
+      tags:
+      - Agents
+      parameters:
+      - name: environment
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: path
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: page_size
+        in: query
+        description: Max entries per page for directory listings.
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      - name: recursive
+        in: query
+        description: Recursively list a directory.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Directory contents or a single file entry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEnvironmentFilesResponse'
+  /upload/v1beta/environments/{environment}/files/{path}:
+    put:
+      operationId: startEnvironmentFileUpload
+      summary: Start a resumable file upload into an environment
+      description: Starts a resumable upload session. The session URL is returned in the X-Goog-Upload-URL
+        response header; send the file bytes to that URL using the resumable upload protocol.
+      tags:
+      - Agents
+      parameters:
+      - name: environment
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: path
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: X-Goog-Upload-Command
+        in: header
+        required: true
+        schema:
+          type: string
+          default: start
+      - name: X-Goog-Upload-Header-Content-Length
+        in: header
+        required: true
+        description: Total file size in bytes.
+        schema:
+          type: integer
+      - name: X-Goog-Upload-Header-Content-Type
+        in: header
+        required: true
+        description: File MIME type.
+        schema:
+          type: string
+      - name: X-Goog-Upload-Protocol
+        in: header
+        required: true
+        schema:
+          type: string
+          default: resumable
+      - name: extract
+        in: query
+        description: Unpack a tar or tar.gz archive into path.
+        schema:
+          type: boolean
+      - name: overwrite
+        in: query
+        description: Overwrite an existing destination file.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Empty body. Upload session URL is in the X-Goog-Upload-URL header.
+          headers:
+            X-Goog-Upload-URL:
+              description: Resumable upload session URL.
+              schema:
+                type: string
+  /v1beta/environments/{id}:
+    get:
+      operationId: getEnvironment
+      summary: Get an environment
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Environment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Environment'
+    delete:
+      operationId: deleteEnvironment
+      summary: Delete an environment
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/voices:
+    post:
+      operationId: createVoice
+      summary: Create a voice (replicated or prompted)
+      tags:
+      - Audio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVoiceRequest'
+      responses:
+        '200':
+          description: The created Voice.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    get:
+      operationId: listVoices
+      summary: List voices (caller-owned stored voices newest first, then prebuilt)
+      tags:
+      - Audio
+      parameters:
+      - name: accent
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: context
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: gender
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: language_code
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: page_size
+        in: query
+        description: Default 50; max 1000 (higher values are capped).
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        description: Token from a previous call. All filters must match the original call or INVALID_ARGUMENT
+          is returned; page_size may change.
+        schema:
+          type: string
+      - name: persona
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: pitch
+        in: query
+        description: low, medium, high (case-insensitive); OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: region_code
+        in: query
+        description: Case-insensitive exact match; OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: search
+        in: query
+        description: Substring match on display_name and description; max 2048 bytes.
+        schema:
+          type: string
+          maxLength: 2048
+      - name: type
+        in: query
+        description: prebuilt, replicated, prompted (case-insensitive); OR logic.
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: A page of voices.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListVoicesResponse'
+  /v1beta/voices/{voicesId}:
+    get:
+      operationId: getVoice
+      summary: Get a stored custom voice
+      description: Stored custom voices only; prebuilt voices cannot be retrieved here (use listVoices).
+      tags:
+      - Audio
+      parameters:
+      - name: voicesId
+        in: path
+        required: true
+        description: 'Example: voices/voice_abc123def456'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Voice.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    delete:
+      operationId: deleteVoice
+      summary: Delete a stored custom voice
+      description: Stored custom voices only; prebuilt voices cannot be deleted.
+      tags:
+      - Audio
+      parameters:
+      - name: voicesId
+        in: path
+        required: true
+        description: 'Example: voices/voice_abc123def456'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/credentials:
+    post:
+      operationId: createCredential
+      summary: Create a credential (bearer token, OAuth2, or environment variable)
+      tags:
+      - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCredentialRequest'
+      responses:
+        '200':
+          description: The created Credential.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+    get:
+      operationId: listCredentials
+      summary: List credentials
+      tags:
+      - Agents
+      parameters:
+      - name: page_size
+        in: query
+        description: Maximum number of credentials to return.
+        schema:
+          type: integer
+      - name: page_token
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: A page of credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCredentialsResponse'
+  /v1beta/credentials/{id}:
+    get:
+      operationId: getCredential
+      summary: Get a credential
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The Credential.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+    patch:
+      operationId: updateCredential
+      summary: Update a credential
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: update_mask
+        in: query
+        description: List of fields to update. Format not specified.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCredentialRequest'
+      responses:
+        '200':
+          description: The updated Credential.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+    delete:
+      operationId: deleteCredential
+      summary: Delete a credential
+      tags:
+      - Agents
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Empty response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /upload/v1beta/files:
+    post:
+      operationId: mediaUploadFile
+      summary: Upload a file (media upload, including resumable session start)
+      description: media.upload. Media upload URI. For resumable uploads send header X-Goog-Upload-Protocol=resumable
+        and X-Goog-Upload-Command=start (plus X-Goog-Upload-Header-Content-Length and X-Goog-Upload-Header-Content-Type)
+        with a JSON body; the session URL is returned in the x-goog-upload-url response header. Then POST
+        the bytes to that URL with X-Goog-Upload-Offset=0 and X-Goog-Upload-Command="upload, finalize";
+        that final response is a CreateFileResponse (JSON with a file field).
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/XGoogUploadProtocol'
+      - $ref: '#/components/parameters/XGoogUploadCommand'
+      - $ref: '#/components/parameters/XGoogUploadHeaderContentLength'
+      - $ref: '#/components/parameters/XGoogUploadHeaderContentType'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFileRequest'
+      responses:
+        '200':
+          description: CreateFileResponse. For the resumable start command the response carries the x-goog-upload-url
+            header.
+          headers:
+            x-goog-upload-url:
+              description: URL to which the file bytes are uploaded (resumable start only).
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFileResponse'
+  /v1beta/files:
+    post:
+      operationId: createFileMetadata
+      summary: Create a file (metadata-only request)
+      description: media.upload metadata URI. Creates a File from metadata only.
+      tags:
+      - Platform
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFileRequest'
+      responses:
+        '200':
+          description: Metadata for the created file.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateFileResponse'
+    get:
+      operationId: listFiles
+      summary: List files owned by the requesting project
+      tags:
+      - Platform
+      parameters:
+      - name: pageSize
+        in: query
+        required: false
+        description: Maximum number of Files to return per page. Defaults to 10. Maximum is 100.
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: A page token from a previous files.list call.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ListFilesResponse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFilesResponse'
+  /v1beta/files/{file}:
+    parameters:
+    - name: file
+      in: path
+      required: true
+      description: File id. Documented as {name=files/*}; the full resource name is files/{file}.
+      schema:
+        type: string
+    get:
+      operationId: getFile
+      summary: Get metadata for a file
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: A File instance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+    delete:
+      operationId: deleteFile
+      summary: Delete a file
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: An empty JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/files:register:
+    post:
+      operationId: registerFiles
+      summary: Register Google Cloud Storage files
+      description: Registers Google Cloud Storage files with FileService. The files are not copied, only
+        registered. If one URI fails, the whole request fails.
+      tags:
+      - Platform
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterFilesRequest'
+      responses:
+        '200':
+          description: RegisterFilesResponse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterFilesResponse'
+  /v1beta/models/{model}:batchGenerateContent:
+    post:
+      operationId: batchGenerateContent
+      summary: Enqueue a batch of generateContent requests
+      description: Enqueues a batch of models.generateContent requests for batch processing. Documented
+        as {batch.model=models/*}:batchGenerateContent.
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/ModelPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchGenerateContentRequest'
+      responses:
+        '200':
+          description: Operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/batches:
+    get:
+      operationId: listBatches
+      summary: List batch operations
+      description: Lists operations that match the specified filter in the request. Documented as {name=batches}.
+      tags:
+      - Platform
+      parameters:
+      - name: filter
+        in: query
+        required: false
+        description: The standard list filter.
+        schema:
+          type: string
+      - name: pageSize
+        in: query
+        required: false
+        description: The standard list page size.
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: The standard list page token.
+        schema:
+          type: string
+      - name: returnPartialSuccess
+        in: query
+        required: false
+        description: When set to true, operations that are reachable are returned as normal, and those
+          that are unreachable are returned in ListOperationsResponse.unreachable. This can only be true
+          when reading across collections; otherwise UNIMPLEMENTED is returned.
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: ListOperationsResponse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOperationsResponse'
+  /v1beta/batches/{batch}:
+    parameters:
+    - $ref: '#/components/parameters/BatchPath'
+    get:
+      operationId: getBatch
+      summary: Get the latest state of a batch operation
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: Operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+    delete:
+      operationId: deleteBatch
+      summary: Delete a batch operation
+      description: Indicates the client is no longer interested in the operation result. It does not cancel
+        the operation.
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: An empty JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/batches/{batch}:cancel:
+    post:
+      operationId: cancelBatch
+      summary: Cancel a batch operation
+      description: Starts asynchronous cancellation on a long-running operation; best effort. On successful
+        cancellation the operation is not deleted; instead it has an error with code 1 (CANCELLED).
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/BatchPath'
+      responses:
+        '200':
+          description: An empty JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/batches/{batch}:updateGenerateContentBatch:
+    patch:
+      operationId: updateGenerateContentBatch
+      summary: Update a GenerateContent batch
+      description: Documented as {generateContentBatch.name=batches/*}:updateGenerateContentBatch.
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/BatchPath'
+      - $ref: '#/components/parameters/UpdateMask'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateContentBatch'
+      responses:
+        '200':
+          description: GenerateContentBatch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateContentBatch'
+  /v1beta/batches/{batch}:updateEmbedContentBatch:
+    patch:
+      operationId: updateEmbedContentBatch
+      summary: Update an EmbedContent batch
+      description: Documented as {embedContentBatch.name=batches/*}:updateEmbedContentBatch.
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/BatchPath'
+      - $ref: '#/components/parameters/UpdateMask'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedContentBatch'
+      responses:
+        '200':
+          description: EmbedContentBatch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedContentBatch'
+  /v1beta/fileSearchStores:
+    post:
+      operationId: createFileSearchStore
+      summary: Create an empty FileSearchStore
+      tags:
+      - Platform
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileSearchStore'
+      responses:
+        '200':
+          description: The created FileSearchStore.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSearchStore'
+    get:
+      operationId: listFileSearchStores
+      summary: List FileSearchStores owned by the user
+      tags:
+      - Platform
+      parameters:
+      - name: pageSize
+        in: query
+        required: false
+        description: Maximum number of FileSearchStores to return per page. The service may return fewer.
+          Defaults to 10. Maximum is 20.
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: A page token from a previous fileSearchStores.list call. All other parameters must
+          match the call that provided the token.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ListFileSearchStoresResponse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFileSearchStoresResponse'
+  /v1beta/fileSearchStores/{filesearchstore}:
+    parameters:
+    - $ref: '#/components/parameters/FileSearchStorePath'
+    get:
+      operationId: getFileSearchStore
+      summary: Get a FileSearchStore
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: A FileSearchStore.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSearchStore'
+    delete:
+      operationId: deleteFileSearchStore
+      summary: Delete a FileSearchStore
+      tags:
+      - Platform
+      parameters:
+      - name: force
+        in: query
+        required: false
+        description: If set to true, any Documents and objects related to this FileSearchStore will also
+          be deleted. If false (the default), a FAILED_PRECONDITION error will be returned if FileSearchStore
+          contains any Documents.
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: An empty JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+  /v1beta/fileSearchStores/{filesearchstore}:importFile:
+    post:
+      operationId: importFileToFileSearchStore
+      summary: Import a File from the File Service into a FileSearchStore
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportFileRequest'
+      responses:
+        '200':
+          description: Operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/fileSearchStores/{filesearchstore}:uploadToFileSearchStore:
+    post:
+      operationId: uploadToFileSearchStoreMetadata
+      summary: Upload to a FileSearchStore (metadata-only request)
+      description: media.uploadToFileSearchStore metadata URI. Uploads data to a FileSearchStore, preprocesses
+        and chunks before storing it.
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadToFileSearchStoreRequest'
+      responses:
+        '200':
+          description: Operation-shaped response (documented as CustomLongRunningOperation).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /upload/v1beta/fileSearchStores/{filesearchstore}:uploadToFileSearchStore:
+    post:
+      operationId: uploadToFileSearchStoreMedia
+      summary: Upload to a FileSearchStore (media upload)
+      description: media.uploadToFileSearchStore media upload URI. Uploads data to a FileSearchStore,
+        preprocesses and chunks before storing it.
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadToFileSearchStoreRequest'
+      responses:
+        '200':
+          description: Operation-shaped response (documented as CustomLongRunningOperation).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/fileSearchStores/{filesearchstore}/operations/{operation}:
+    get:
+      operationId: getFileSearchStoreOperation
+      summary: Get the latest state of a FileSearchStore long-running operation
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      - $ref: '#/components/parameters/OperationPath'
+      responses:
+        '200':
+          description: Operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/fileSearchStores/{filesearchstore}/upload/operations/{operation}:
+    get:
+      operationId: getFileSearchStoreUploadOperation
+      summary: Get the latest state of a FileSearchStore upload operation
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      - $ref: '#/components/parameters/OperationPath'
+      responses:
+        '200':
+          description: Operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operation'
+  /v1beta/fileSearchStores/{filesearchstore}/documents:
+    get:
+      operationId: listFileSearchDocuments
+      summary: List Documents in a FileSearchStore
+      tags:
+      - Platform
+      parameters:
+      - $ref: '#/components/parameters/FileSearchStorePath'
+      - name: pageSize
+        in: query
+        required: false
+        description: Maximum number of Documents to return per page. The service may return fewer. Defaults
+          to 10. Maximum is 20.
+        schema:
+          type: integer
+      - name: pageToken
+        in: query
+        required: false
+        description: A page token from a previous documents.list call. All other parameters must match
+          the call that provided the token.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: ListDocumentsResponse.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDocumentsResponse'
+  /v1beta/fileSearchStores/{filesearchstore}/documents/{document}:
+    parameters:
+    - $ref: '#/components/parameters/FileSearchStorePath'
+    - name: document
+      in: path
+      required: true
+      description: Document id. Full name is fileSearchStores/{filesearchstore}/documents/{document}.
+      schema:
+        type: string
+    get:
+      operationId: getFileSearchDocument
+      summary: Get a Document
+      tags:
+      - Platform
+      responses:
+        '200':
+          description: A Document.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      operationId: deleteFileSearchDocument
+      summary: Delete a Document
+      tags:
+      - Platform
+      parameters:
+      - name: force
+        in: query
+        required: false
+        description: If set to true, any Chunks and objects related to this Document will also be deleted.
+          If false (the default), a FAILED_PRECONDITION error will be returned if Document contains any
+          Chunks.
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: An empty JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Empty'
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-goog-api-key
+      description: Gemini API key from Google AI Studio.
+  parameters:
+    ModelPath:
+      name: model
+      in: path
+      required: true
+      description: Model id; the resource name is models/{model}
+      schema:
+        type: string
+    CachedContentPath:
+      name: cachedContent
+      in: path
+      required: true
+      description: CachedContent id; the resource name is cachedContents/{id}
+      schema:
+        type: string
+    BatchPath:
+      name: batch
+      in: path
+      required: true
+      description: Batch id; full resource name is batches/{batch}.
+      schema:
+        type: string
+    FileSearchStorePath:
+      name: filesearchstore
+      in: path
+      required: true
+      description: FileSearchStore id; full resource name is fileSearchStores/{filesearchstore}.
+      schema:
+        type: string
+    OperationPath:
+      name: operation
+      in: path
+      required: true
+      description: Operation id.
+      schema:
+        type: string
+    UpdateMask:
+      name: updateMask
+      in: query
+      required: false
+      description: 'Optional FieldMask: comma-separated list of fully qualified field names to update.'
+      schema:
+        type: string
+    XGoogUploadProtocol:
+      name: X-Goog-Upload-Protocol
+      in: header
+      required: false
+      description: Set to "resumable" to start a resumable upload.
+      schema:
+        type: string
+    XGoogUploadCommand:
+      name: X-Goog-Upload-Command
+      in: header
+      required: false
+      description: 'Upload command: "start" to begin a resumable session (final bytes use "upload, finalize"
+        against the returned URL).'
+      schema:
+        type: string
+    XGoogUploadHeaderContentLength:
+      name: X-Goog-Upload-Header-Content-Length
+      in: header
+      required: false
+      description: Size in bytes of the file to be uploaded (resumable start).
+      schema:
+        type: string
+    XGoogUploadHeaderContentType:
+      name: X-Goog-Upload-Header-Content-Type
+      in: header
+      required: false
+      description: MIME type of the file to be uploaded (resumable start).
+      schema:
+        type: string
+  schemas:
+    GenerateContentRequest:
+      type: object
+      required:
+      - contents
+      properties:
+        model:
+          type: string
+          description: Resource name models/{model}. Required when the request is embedded in countTokens.generateContentRequest;
+            otherwise taken from the path.
+        contents:
+          type: array
+          description: Conversation content. One instance for single-turn; repeated for multi-turn.
+          items:
+            $ref: '#/components/schemas/Content'
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+        toolConfig:
+          $ref: '#/components/schemas/ToolConfig'
+        safetySettings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetySetting'
+        systemInstruction:
+          $ref: '#/components/schemas/Content'
+        generationConfig:
+          $ref: '#/components/schemas/GenerationConfig'
+        cachedContent:
+          type: string
+          description: Cached content to use as context. Format cachedContents/{cachedContent}
+        continuationToken:
+          type: string
+          format: byte
+          description: Opaque base64 token to resume generation that stopped with finishReason CONTINUATION.
+            contents must replicate the original request.
+        labels:
+          type: object
+          description: User-defined metadata. Keys start with a letter, max 63 chars, lowercase letters,
+            numbers, underscores, dashes. safety_identifier is the documented key for aggregator safety
+            identifiers.
+          additionalProperties:
+            type: string
+        serviceTier:
+          type: string
+          description: Service tier of the request. Enum values were not visible in the docs excerpt.
+        store:
+          type: boolean
+          description: Controls logging for the request; overrides the project-level logging config.
+    GenerateContentResponse:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        promptFeedback:
+          $ref: '#/components/schemas/PromptFeedback'
+        usageMetadata:
+          $ref: '#/components/schemas/GenerateContentUsageMetadata'
+        modelVersion:
+          type: string
+        responseId:
+          type: string
+        modelStatus:
+          $ref: '#/components/schemas/ModelStatus'
+    ModelStatus:
+      type: object
+      properties:
+        modelStage:
+          type: string
+          description: The stage of the underlying model (enum ModelStage; values not visible in the docs
+            excerpt).
+        retirementTime:
+          type: string
+          format: date-time
+          description: The time at which the model will be retired (RFC 3339).
+    PromptFeedback:
+      type: object
+      properties:
+        blockReason:
+          type: string
+          enum:
+          - BLOCK_REASON_UNSPECIFIED
+          - SAFETY
+          - OTHER
+          - BLOCKLIST
+          - PROHIBITED_CONTENT
+          - IMAGE_SAFETY
+        safetyRatings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyRating'
+    GenerateContentUsageMetadata:
+      type: object
+      properties:
+        promptTokenCount:
+          type: integer
+        cachedContentTokenCount:
+          type: integer
+        candidatesTokenCount:
+          type: integer
+        toolUsePromptTokenCount:
+          type: integer
+        thoughtsTokenCount:
+          type: integer
+        totalTokenCount:
+          type: integer
+        promptTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        cacheTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        candidatesTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        toolUsePromptTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        serviceTier:
+          type: string
+          description: Output only. Service tier of the request.
+    Candidate:
+      type: object
+      properties:
+        index:
+          type: integer
+        content:
+          $ref: '#/components/schemas/Content'
+        finishReason:
+          type: string
+          enum:
+          - FINISH_REASON_UNSPECIFIED
+          - STOP
+          - MAX_TOKENS
+          - SAFETY
+          - RECITATION
+          - LANGUAGE
+          - OTHER
+          - BLOCKLIST
+          - PROHIBITED_CONTENT
+          - SPII
+          - MALFORMED_FUNCTION_CALL
+          - IMAGE_SAFETY
+          - IMAGE_PROHIBITED_CONTENT
+          - IMAGE_OTHER
+          - NO_IMAGE
+          - IMAGE_RECITATION
+          - UNEXPECTED_TOOL_CALL
+          - TOO_MANY_TOOL_CALLS
+        finishMessage:
+          type: string
+        safetyRatings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyRating'
+        citationMetadata:
+          $ref: '#/components/schemas/CitationMetadata'
+        tokenCount:
+          type: integer
+        groundingAttributions:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroundingAttribution'
+        groundingMetadata:
+          $ref: '#/components/schemas/GroundingMetadata'
+        avgLogprobs:
+          type: number
+          format: double
+        logprobsResult:
+          $ref: '#/components/schemas/LogprobsResult'
+        urlContextMetadata:
+          $ref: '#/components/schemas/UrlContextMetadata'
+    UrlContextMetadata:
+      type: object
+      properties:
+        urlMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/UrlMetadata'
+    UrlMetadata:
+      type: object
+      properties:
+        retrievedUrl:
+          type: string
+        urlRetrievalStatus:
+          type: string
+          enum:
+          - URL_RETRIEVAL_STATUS_UNSPECIFIED
+          - URL_RETRIEVAL_STATUS_SUCCESS
+          - URL_RETRIEVAL_STATUS_ERROR
+          - URL_RETRIEVAL_STATUS_PAYWALL
+          - URL_RETRIEVAL_STATUS_UNSAFE
+    LogprobsResult:
+      type: object
+      properties:
+        logProbabilitySum:
+          type: number
+          format: float
+        topCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopCandidates'
+        chosenCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogprobsCandidate'
+    TopCandidates:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogprobsCandidate'
+    LogprobsCandidate:
+      type: object
+      properties:
+        token:
+          type: string
+        tokenId:
+          type: integer
+        logProbability:
+          type: number
+          format: float
+    GroundingAttribution:
+      type: object
+      properties:
+        sourceId:
+          $ref: '#/components/schemas/AttributionSourceId'
+        content:
+          $ref: '#/components/schemas/Content'
+    AttributionSourceId:
+      type: object
+      description: 'Union: set one of groundingPassage or semanticRetrieverChunk'
+      properties:
+        groundingPassage:
+          type: object
+          properties:
+            passageId:
+              type: string
+            partIndex:
+              type: integer
+        semanticRetrieverChunk:
+          type: object
+          properties:
+            source:
+              type: string
+            chunk:
+              type: string
+    GroundingMetadata:
+      type: object
+      properties:
+        searchEntryPoint:
+          $ref: '#/components/schemas/SearchEntryPoint'
+        groundingChunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroundingChunk'
+        groundingSupports:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroundingSupport'
+        retrievalMetadata:
+          type: object
+          properties:
+            googleSearchDynamicRetrievalScore:
+              type: number
+              format: float
+        webSearchQueries:
+          type: array
+          items:
+            type: string
+        googleMapsWidgetContextToken:
+          type: string
+    SearchEntryPoint:
+      type: object
+      properties:
+        renderedContent:
+          type: string
+        sdkBlob:
+          type: string
+          format: byte
+    GroundingChunk:
+      type: object
+      description: 'Union chunk_type: set one of web, retrievedContext, maps'
+      properties:
+        web:
+          type: object
+          properties:
+            uri:
+              type: string
+            title:
+              type: string
+        retrievedContext:
+          type: object
+          properties:
+            uri:
+              type: string
+            title:
+              type: string
+            text:
+              type: string
+        maps:
+          type: object
+          properties:
+            uri:
+              type: string
+            title:
+              type: string
+            text:
+              type: string
+            placeId:
+              type: string
+            placeAnswerSources:
+              type: object
+              properties:
+                reviewSnippets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      reviewId:
+                        type: string
+                      googleMapsUri:
+                        type: string
+                      title:
+                        type: string
+    GroundingSupport:
+      type: object
+      properties:
+        segment:
+          $ref: '#/components/schemas/Segment'
+        groundingChunkIndices:
+          type: array
+          items:
+            type: integer
+        confidenceScores:
+          type: array
+          items:
+            type: number
+            format: float
+    Segment:
+      type: object
+      properties:
+        partIndex:
+          type: integer
+        startIndex:
+          type: integer
+        endIndex:
+          type: integer
+        text:
+          type: string
+    CitationMetadata:
+      type: object
+      properties:
+        citationSources:
+          type: array
+          items:
+            $ref: '#/components/schemas/CitationSource'
+    CitationSource:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+        endIndex:
+          type: integer
+        uri:
+          type: string
+        license:
+          type: string
+    SafetyRating:
+      type: object
+      required:
+      - category
+      - probability
+      properties:
+        category:
+          $ref: '#/components/schemas/HarmCategory'
+        probability:
+          type: string
+          enum:
+          - HARM_PROBABILITY_UNSPECIFIED
+          - NEGLIGIBLE
+          - LOW
+          - MEDIUM
+          - HIGH
+        blocked:
+          type: boolean
+    SafetySetting:
+      type: object
+      required:
+      - category
+      - threshold
+      properties:
+        category:
+          $ref: '#/components/schemas/HarmCategory'
+        threshold:
+          type: string
+          enum:
+          - HARM_BLOCK_THRESHOLD_UNSPECIFIED
+          - BLOCK_LOW_AND_ABOVE
+          - BLOCK_MEDIUM_AND_ABOVE
+          - BLOCK_ONLY_HIGH
+          - BLOCK_NONE
+          - 'OFF'
+    HarmCategory:
+      type: string
+      enum:
+      - HARM_CATEGORY_UNSPECIFIED
+      - HARM_CATEGORY_DEROGATORY
+      - HARM_CATEGORY_TOXICITY
+      - HARM_CATEGORY_VIOLENCE
+      - HARM_CATEGORY_SEXUAL
+      - HARM_CATEGORY_MEDICAL
+      - HARM_CATEGORY_DANGEROUS
+      - HARM_CATEGORY_HARASSMENT
+      - HARM_CATEGORY_HATE_SPEECH
+      - HARM_CATEGORY_SEXUALLY_EXPLICIT
+      - HARM_CATEGORY_DANGEROUS_CONTENT
+      - HARM_CATEGORY_CIVIC_INTEGRITY
+      - HARM_CATEGORY_JAILBREAK
+    Content:
+      type: object
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+        role:
+          type: string
+          description: Producer of the content. Must be either user or model.
+    Part:
+      type: object
+      description: 'Union data: set one of text, inlineData, functionCall, functionResponse, fileData,
+        executableCode, codeExecutionResult. Union metadata: videoMetadata.'
+      properties:
+        text:
+          type: string
+        inlineData:
+          $ref: '#/components/schemas/Blob'
+        functionCall:
+          $ref: '#/components/schemas/FunctionCall'
+        functionResponse:
+          $ref: '#/components/schemas/FunctionResponse'
+        fileData:
+          $ref: '#/components/schemas/FileData'
+        executableCode:
+          $ref: '#/components/schemas/ExecutableCode'
+        codeExecutionResult:
+          $ref: '#/components/schemas/CodeExecutionResult'
+        videoMetadata:
+          $ref: '#/components/schemas/VideoMetadata'
+        thought:
+          type: boolean
+        thoughtSignature:
+          type: string
+          format: byte
+        partMetadata:
+          type: object
+          additionalProperties: true
+    Blob:
+      type: object
+      properties:
+        mimeType:
+          type: string
+        data:
+          type: string
+          format: byte
+          description: Raw bytes, base64-encoded
+    FileData:
+      type: object
+      required:
+      - fileUri
+      properties:
+        mimeType:
+          type: string
+        fileUri:
+          type: string
+    VideoMetadata:
+      type: object
+      properties:
+        startOffset:
+          type: string
+          description: Duration, for example 3.5s
+        endOffset:
+          type: string
+          description: Duration, for example 3.5s
+        fps:
+          type: number
+          format: double
+    ExecutableCode:
+      type: object
+      required:
+      - language
+      - code
+      properties:
+        language:
+          type: string
+          enum:
+          - LANGUAGE_UNSPECIFIED
+          - PYTHON
+        code:
+          type: string
+    CodeExecutionResult:
+      type: object
+      required:
+      - outcome
+      properties:
+        outcome:
+          type: string
+          enum:
+          - OUTCOME_UNSPECIFIED
+          - OUTCOME_OK
+          - OUTCOME_FAILED
+          - OUTCOME_DEADLINE_EXCEEDED
+        output:
+          type: string
+    FunctionCall:
+      type: object
+      required:
+      - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        args:
+          type: object
+          additionalProperties: true
+    FunctionResponse:
+      type: object
+      required:
+      - name
+      - response
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        response:
+          type: object
+          additionalProperties: true
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionResponsePart'
+        willContinue:
+          type: boolean
+        scheduling:
+          type: string
+          enum:
+          - SCHEDULING_UNSPECIFIED
+          - SILENT
+          - WHEN_IDLE
+          - INTERRUPT
+    FunctionResponsePart:
+      type: object
+      properties:
+        inlineData:
+          $ref: '#/components/schemas/FunctionResponseBlob'
+    FunctionResponseBlob:
+      type: object
+      properties:
+        mimeType:
+          type: string
+        data:
+          type: string
+          format: byte
+    Tool:
+      type: object
+      properties:
+        functionDeclarations:
+          type: array
+          items:
+            $ref: '#/components/schemas/FunctionDeclaration'
+        googleSearchRetrieval:
+          $ref: '#/components/schemas/GoogleSearchRetrieval'
+        codeExecution:
+          type: object
+          description: Empty object; enables code execution
+        googleSearch:
+          $ref: '#/components/schemas/GoogleSearch'
+        computerUse:
+          $ref: '#/components/schemas/ComputerUse'
+        urlContext:
+          type: object
+          description: Empty object; enables URL context retrieval
+        fileSearch:
+          $ref: '#/components/schemas/FileSearch'
+        googleMaps:
+          $ref: '#/components/schemas/GoogleMaps'
+    GoogleSearch:
+      type: object
+      properties:
+        timeRangeFilter:
+          $ref: '#/components/schemas/Interval'
+    Interval:
+      type: object
+      properties:
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    ComputerUse:
+      type: object
+      required:
+      - environment
+      properties:
+        environment:
+          type: string
+          enum:
+          - ENVIRONMENT_UNSPECIFIED
+          - ENVIRONMENT_BROWSER
+        excludedPredefinedFunctions:
+          type: array
+          items:
+            type: string
+    GoogleMaps:
+      type: object
+      properties:
+        enableWidget:
+          type: boolean
+    FileSearch:
+      type: object
+      required:
+      - retrievalResources
+      properties:
+        retrievalResources:
+          type: array
+          items:
+            type: object
+            required:
+            - ragStoreName
+            properties:
+              ragStoreName:
+                type: string
+        retrievalConfig:
+          type: object
+          properties:
+            topK:
+              type: integer
+            metadataFilter:
+              type: string
+    GoogleSearchRetrieval:
+      type: object
+      properties:
+        dynamicRetrievalConfig:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum:
+              - MODE_UNSPECIFIED
+              - MODE_DYNAMIC
+            dynamicThreshold:
+              type: number
+              format: float
+    FunctionDeclaration:
+      type: object
+      required:
+      - name
+      - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          $ref: '#/components/schemas/Schema'
+        parametersJsonSchema:
+          description: JSON Schema value (any JSON)
+        response:
+          $ref: '#/components/schemas/Schema'
+        responseJsonSchema:
+          description: JSON Schema value (any JSON)
+        behavior:
+          type: string
+          enum:
+          - UNSPECIFIED
+          - BLOCKING
+          - NON_BLOCKING
+    Schema:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - TYPE_UNSPECIFIED
+          - STRING
+          - NUMBER
+          - INTEGER
+          - BOOLEAN
+          - ARRAY
+          - OBJECT
+          - 'NULL'
+        format:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        nullable:
+          type: boolean
+        enum:
+          type: array
+          items:
+            type: string
+        items:
+          $ref: '#/components/schemas/Schema'
+        maxItems:
+          type: string
+          format: int64
+        minItems:
+          type: string
+          format: int64
+        properties:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Schema'
+        required:
+          type: array
+          items:
+            type: string
+        minProperties:
+          type: string
+          format: int64
+        maxProperties:
+          type: string
+          format: int64
+        minimum:
+          type: number
+          format: double
+        maximum:
+          type: number
+          format: double
+        minLength:
+          type: string
+          format: int64
+        maxLength:
+          type: string
+          format: int64
+        pattern:
+          type: string
+        example:
+          description: Example of the object (any JSON)
+        anyOf:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schema'
+        propertyOrdering:
+          type: array
+          items:
+            type: string
+        default:
+          description: Default value (any JSON)
+    ToolConfig:
+      type: object
+      properties:
+        functionCallingConfig:
+          $ref: '#/components/schemas/FunctionCallingConfig'
+        retrievalConfig:
+          $ref: '#/components/schemas/RetrievalConfig'
+        includeServerSideToolInvocations:
+          type: boolean
+    FunctionCallingConfig:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - MODE_UNSPECIFIED
+          - AUTO
+          - ANY
+          - NONE
+          - VALIDATED
+        allowedFunctionNames:
+          type: array
+          items:
+            type: string
+    RetrievalConfig:
+      type: object
+      properties:
+        latLng:
+          $ref: '#/components/schemas/LatLng'
+        languageCode:
+          type: string
+          description: BCP 47 language tag
+    LatLng:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+    GenerationConfig:
+      type: object
+      properties:
+        candidateCount:
+          type: integer
+        stopSequences:
+          type: array
+          items:
+            type: string
+        maxOutputTokens:
+          type: integer
+        temperature:
+          type: number
+          format: float
+        topP:
+          type: number
+          format: float
+        topK:
+          type: integer
+        seed:
+          type: integer
+        responseMimeType:
+          type: string
+        responseSchema:
+          $ref: '#/components/schemas/Schema'
+        _responseJsonSchema:
+          description: JSON Schema value (any JSON)
+        responseJsonSchema:
+          description: JSON Schema value (any JSON)
+        presencePenalty:
+          type: number
+          format: float
+        frequencyPenalty:
+          type: number
+          format: float
+        responseLogprobs:
+          type: boolean
+        logprobs:
+          type: integer
+        enableEnhancedCivicAnswers:
+          type: boolean
+        responseModalities:
+          type: array
+          items:
+            type: string
+            enum:
+            - MODALITY_UNSPECIFIED
+            - TEXT
+            - IMAGE
+            - AUDIO
+        speechConfig:
+          $ref: '#/components/schemas/SpeechConfig'
+        thinkingConfig:
+          $ref: '#/components/schemas/ThinkingConfig'
+        imageConfig:
+          $ref: '#/components/schemas/ImageConfig'
+        mediaResolution:
+          type: string
+          enum:
+          - MEDIA_RESOLUTION_UNSPECIFIED
+          - MEDIA_RESOLUTION_LOW
+          - MEDIA_RESOLUTION_MEDIUM
+          - MEDIA_RESOLUTION_HIGH
+    SpeechConfig:
+      type: object
+      properties:
+        voiceConfig:
+          $ref: '#/components/schemas/VoiceConfig'
+        multiSpeakerVoiceConfig:
+          type: object
+          required:
+          - speakerVoiceConfigs
+          properties:
+            speakerVoiceConfigs:
+              type: array
+              items:
+                type: object
+                required:
+                - speaker
+                - voiceConfig
+                properties:
+                  speaker:
+                    type: string
+                  voiceConfig:
+                    $ref: '#/components/schemas/VoiceConfig'
+        languageCode:
+          type: string
+    VoiceConfig:
+      type: object
+      properties:
+        prebuiltVoiceConfig:
+          type: object
+          properties:
+            voiceName:
+              type: string
+    ThinkingConfig:
+      type: object
+      properties:
+        includeThoughts:
+          type: boolean
+        thinkingBudget:
+          type: integer
+    ImageConfig:
+      type: object
+      properties:
+        aspectRatio:
+          type: string
+    Modality:
+      type: string
+      enum:
+      - MODALITY_UNSPECIFIED
+      - TEXT
+      - IMAGE
+      - VIDEO
+      - AUDIO
+      - DOCUMENT
+    ModalityTokenCount:
+      type: object
+      properties:
+        modality:
+          $ref: '#/components/schemas/Modality'
+        tokenCount:
+          type: integer
+    CountTokensRequest:
+      type: object
+      description: Send either contents or generateContentRequest, never both.
+      properties:
+        contents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Content'
+        generateContentRequest:
+          $ref: '#/components/schemas/GenerateContentRequest'
+    CountTokensResponse:
+      type: object
+      properties:
+        totalTokens:
+          type: integer
+        cachedContentTokenCount:
+          type: integer
+        promptTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+        cacheTokensDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+    TaskType:
+      type: string
+      enum:
+      - TASK_TYPE_UNSPECIFIED
+      - RETRIEVAL_QUERY
+      - RETRIEVAL_DOCUMENT
+      - SEMANTIC_SIMILARITY
+      - CLASSIFICATION
+      - CLUSTERING
+      - QUESTION_ANSWERING
+      - FACT_VERIFICATION
+      - CODE_RETRIEVAL_QUERY
+    EmbedContentConfig:
+      type: object
+      properties:
+        title:
+          type: string
+        taskType:
+          $ref: '#/components/schemas/TaskType'
+        autoTruncate:
+          type: boolean
+        outputDimensionality:
+          type: integer
+        documentOcr:
+          type: boolean
+        audioTrackExtraction:
+          type: boolean
+    EmbedContentRequest:
+      type: object
+      required:
+      - content
+      properties:
+        model:
+          type: string
+          description: Resource name models/{model}. In batchEmbedContents each request model must match
+            the path model.
+        content:
+          $ref: '#/components/schemas/Content'
+        taskType:
+          $ref: '#/components/schemas/TaskType'
+        title:
+          type: string
+          deprecated: true
+        outputDimensionality:
+          type: integer
+          deprecated: true
+        embedContentConfig:
+          $ref: '#/components/schemas/EmbedContentConfig'
+    ContentEmbedding:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            type: number
+            format: float
+        shape:
+          type: array
+          items:
+            type: integer
+    EmbeddingUsageMetadata:
+      type: object
+      properties:
+        promptTokenCount:
+          type: integer
+        promptTokenDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokenCount'
+    EmbedContentResponse:
+      type: object
+      properties:
+        embedding:
+          $ref: '#/components/schemas/ContentEmbedding'
+        usageMetadata:
+          $ref: '#/components/schemas/EmbeddingUsageMetadata'
+    BatchEmbedContentsRequest:
+      type: object
+      required:
+      - requests
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmbedContentRequest'
+    BatchEmbedContentsResponse:
+      type: object
+      properties:
+        embeddings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentEmbedding'
+        usageMetadata:
+          $ref: '#/components/schemas/EmbeddingUsageMetadata'
+    AsyncBatchEmbedContentRequest:
+      type: object
+      description: EmbedContentBatch body (docs prefix these fields with batch.)
+      required:
+      - displayName
+      - inputConfig
+      properties:
+        name:
+          type: string
+          description: Output only. Format batches/{batchId}
+        displayName:
+          type: string
+        inputConfig:
+          $ref: '#/components/schemas/InputEmbedContentConfig'
+        output:
+          $ref: '#/components/schemas/EmbedContentBatchOutput'
+        createTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+        batchStats:
+          $ref: '#/components/schemas/EmbedContentBatchStats'
+        state:
+          type: string
+          description: Output only. BatchState enum; values not defined on the embeddings page.
+        priority:
+          type: string
+          format: int64
+          description: Higher values processed first; negatives allowed; default 0
+        webhookConfig:
+          $ref: '#/components/schemas/WebhookConfig'
+    WebhookConfig:
+      type: object
+      properties:
+        uris:
+          type: array
+          items:
+            type: string
+    InputEmbedContentConfig:
+      type: object
+      description: 'Union source: set one of fileName or requests'
+      properties:
+        fileName:
+          type: string
+        requests:
+          $ref: '#/components/schemas/InlinedEmbedContentRequests'
+    InlinedEmbedContentRequests:
+      type: object
+      required:
+      - requests
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/InlinedEmbedContentRequest'
+    InlinedEmbedContentRequest:
+      type: object
+      required:
+      - request
+      properties:
+        request:
+          $ref: '#/components/schemas/EmbedContentRequest'
+        metadata:
+          type: object
+          additionalProperties: true
+    EmbedContentBatchOutput:
+      type: object
+      description: 'Union output: set one of responsesFile or inlinedResponses'
+      properties:
+        responsesFile:
+          type: string
+          description: Output only. JSONL file with one response per line, in input order
+        inlinedResponses:
+          $ref: '#/components/schemas/InlinedEmbedContentResponses'
+    InlinedEmbedContentResponses:
+      type: object
+      properties:
+        inlinedResponses:
+          type: array
+          items:
+            $ref: '#/components/schemas/InlinedEmbedContentResponse'
+    InlinedEmbedContentResponse:
+      type: object
+      description: 'Union output: error or response'
+      properties:
+        metadata:
+          type: object
+          additionalProperties: true
+        error:
+          $ref: '#/components/schemas/Status'
+        response:
+          $ref: '#/components/schemas/EmbedContentResponse'
+    EmbedContentBatchStats:
+      type: object
+      properties:
+        requestCount:
+          type: string
+          format: int64
+        successfulRequestCount:
+          type: string
+          format: int64
+        failedRequestCount:
+          type: string
+          format: int64
+        pendingRequestCount:
+          type: string
+          format: int64
+    Model:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Format models/{model}
+        baseModelId:
+          type: string
+        version:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        inputTokenLimit:
+          type: integer
+        outputTokenLimit:
+          type: integer
+        supportedGenerationMethods:
+          type: array
+          items:
+            type: string
+        thinking:
+          type: boolean
+        temperature:
+          type: number
+        maxTemperature:
+          type: number
+        topP:
+          type: number
+        topK:
+          type: integer
+    ListModelsResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+        nextPageToken:
+          type: string
+    PredictRequest:
+      type: object
+      required:
+      - instances
+      properties:
+        instances:
+          type: array
+          description: Prediction inputs (generic Value items)
+          items: {}
+        parameters:
+          description: Prediction parameters (generic Value)
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+    PredictResponse:
+      type: object
+      properties:
+        predictions:
+          type: array
+          description: Prediction outputs (generic Value items)
+          items: {}
+    PredictLongRunningRequest:
+      type: object
+      required:
+      - instances
+      properties:
+        instances:
+          type: array
+          description: Prediction inputs, for Veo for example objects with a prompt field
+          items: {}
+        parameters:
+          description: Prediction parameters, for Veo for example aspectRatio, resolution, numberOfVideos
+        webhookConfig:
+          $ref: '#/components/schemas/WebhookConfig'
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+    Operation:
+      type: object
+      description: google.longrunning.Operation. Not defined on the fetched pages; standard shape. For
+        Veo, response.generateVideoResponse.generatedSamples[].video.uri holds the result.
+      properties:
+        name:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        done:
+          type: boolean
+        error:
+          $ref: '#/components/schemas/Status'
+        response:
+          type: object
+          additionalProperties: true
+    Status:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    CachedContent:
+      type: object
+      required:
+      - model
+      properties:
+        contents:
+          type: array
+          description: Input only, immutable
+          items:
+            $ref: '#/components/schemas/Content'
+        tools:
+          type: array
+          description: Input only, immutable
+          items:
+            $ref: '#/components/schemas/Tool'
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+        usageMetadata:
+          $ref: '#/components/schemas/CachedContentUsageMetadata'
+        expireTime:
+          type: string
+          format: date-time
+          description: 'Union expiration: at most one of expireTime or ttl'
+        ttl:
+          type: string
+          description: Input only. Duration, for example 300s
+        name:
+          type: string
+          description: Output only. Format cachedContents/{id}
+        displayName:
+          type: string
+          description: Immutable
+        model:
+          type: string
+          description: Immutable. Format models/{model}. Cached content can only be used with the model
+            it was created for.
+        systemInstruction:
+          $ref: '#/components/schemas/Content'
+        toolConfig:
+          $ref: '#/components/schemas/ToolConfig'
+    CachedContentUsageMetadata:
+      type: object
+      properties:
+        totalTokenCount:
+          type: integer
+    ListCachedContentsResponse:
+      type: object
+      properties:
+        cachedContents:
+          type: array
+          items:
+            $ref: '#/components/schemas/CachedContent'
+        nextPageToken:
+          type: string
+    Empty:
+      type: object
+      description: Empty response body.
+    CreateInteractionRequest:
+      type: object
+      description: Provide model or agent (one is required). generation_config is only valid with model;
+        agent_config only with agent.
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelOption'
+        agent:
+          $ref: '#/components/schemas/AgentOption'
+        input:
+          $ref: '#/components/schemas/InteractionInput'
+        generation_config:
+          $ref: '#/components/schemas/InteractionGenerationConfig'
+        agent_config:
+          $ref: '#/components/schemas/AgentConfig'
+        response_format:
+          description: Enforces output format (for example JSON matching a schema) or configures audio,
+            image or video output. A single ResponseFormat or an array.
+          oneOf:
+          - $ref: '#/components/schemas/ResponseFormat'
+          - type: array
+            items:
+              $ref: '#/components/schemas/ResponseFormat'
+        environment:
+          description: EnvironmentConfig or an environment ID string.
+          oneOf:
+          - $ref: '#/components/schemas/EnvironmentConfig'
+          - type: string
+        system_instruction:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionTool'
+        previous_interaction_id:
+          type: string
+        service_tier:
+          $ref: '#/components/schemas/ServiceTier'
+        webhook_config:
+          $ref: '#/components/schemas/InteractionWebhookConfig'
+        safety_settings:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionSafetySetting'
+        labels:
+          $ref: '#/components/schemas/Labels'
+        stream:
+          type: boolean
+          description: Input only. Whether the interaction is streamed (SSE).
+        store:
+          type: boolean
+          description: Input only. Whether to store the request and response for later retrieval.
+        background:
+          type: boolean
+          description: Input only. Whether to run in the background.
+    Interaction:
+      type: object
+      required:
+      - id
+      - status
+      - created
+      - updated
+      - steps
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/InteractionStatus'
+        created:
+          type: string
+          description: ISO 8601 timestamp.
+        updated:
+          type: string
+          description: ISO 8601 timestamp.
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        model:
+          $ref: '#/components/schemas/ModelOption'
+        agent:
+          $ref: '#/components/schemas/AgentOption'
+        input:
+          $ref: '#/components/schemas/InteractionInput'
+        agent_config:
+          $ref: '#/components/schemas/AgentConfig'
+        response_format:
+          oneOf:
+          - $ref: '#/components/schemas/ResponseFormat'
+          - type: array
+            items:
+              $ref: '#/components/schemas/ResponseFormat'
+        environment:
+          oneOf:
+          - $ref: '#/components/schemas/EnvironmentConfig'
+          - type: string
+        environment_id:
+          type: string
+        system_instruction:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionTool'
+        usage:
+          $ref: '#/components/schemas/Usage'
+        previous_interaction_id:
+          type: string
+        service_tier:
+          $ref: '#/components/schemas/ServiceTier'
+        webhook_config:
+          $ref: '#/components/schemas/InteractionWebhookConfig'
+        safety_settings:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionSafetySetting'
+        labels:
+          $ref: '#/components/schemas/Labels'
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+    InteractionStatus:
+      type: string
+      enum:
+      - in_progress
+      - requires_action
+      - completed
+      - failed
+      - cancelled
+      - incomplete
+      - queued
+    InteractionInput:
+      description: Content, array of Content, array of Step, or a string.
+      oneOf:
+      - $ref: '#/components/schemas/InteractionContent'
+      - type: array
+        items:
+          $ref: '#/components/schemas/InteractionContent'
+      - type: array
+        items:
+          $ref: '#/components/schemas/Step'
+      - type: string
+    ModelOption:
+      type: string
+      description: Model ID. Documented values are listed in the enum; the page presents ModelOption as
+        an enumerated option.
+      enum:
+      - gemma-4-26b-a4b-it
+      - gemma-4-31b-it
+      - gemini-flash-latest
+      - gemini-flash-lite-latest
+      - gemini-pro-latest
+      - gemini-2.5-flash
+      - gemini-2.5-pro
+      - gemini-2.5-flash-lite
+      - gemini-3.5-flash-lite
+      - gemini-2.5-flash-image
+      - gemini-3-flash-preview
+      - gemini-3.1-pro-preview
+      - gemini-3.1-pro-preview-customtools
+      - gemini-3.1-flash-lite
+      - gemini-3.1-flash-lite-image
+      - gemini-3-pro-image
+      - nano-banana-pro-preview
+      - gemini-3.1-flash-image
+      - gemini-nano-banana-2.1
+      - gemini-3.1-flash-tts-preview
+      - gemini-3.5-flash
+      - gemini-3.6-flash
+      - gemini-3.7-flash
+      - gemini-3.8-flash
+      - gemini-4-argon
+      - gemini-3.8-flash-tts
+      - gemini-3.8-flash-lite-tts
+      - lyria-3-clip-preview
+      - lyria-3-pro-preview
+      - gemini-robotics-er-1.6-preview
+      - gemini-robotics-er-2-preview
+      - lyria-3.5
+      - gemini-omni-1.1-flash
+      - gemini-omni-flash-preview
+    AgentOption:
+      type: string
+      enum:
+      - deep-research-pro-preview-12-2025
+      - deep-research-preview-04-2026
+      - deep-research-max-preview-04-2026
+      - antigravity-preview-05-2026
+    ServiceTier:
+      type: string
+      enum:
+      - flex
+      - standard
+      - priority
+      - deferred
+    Labels:
+      type: object
+      description: Keys up to 63 characters; lowercase letters, digits, underscores, dashes; keys must
+        start with a letter.
+      additionalProperties:
+        type: string
+    ToolChoiceConfig:
+      type: object
+      description: Fields not documented in the retrievable page text; likely wraps AllowedTools.
+      properties:
+        allowed_tools:
+          $ref: '#/components/schemas/AllowedTools'
+      additionalProperties: true
+    TranscriptionConfig:
+      type: object
+      properties:
+        mode:
+          oneOf:
+          - $ref: '#/components/schemas/SmartTranscriptionMode'
+          - $ref: '#/components/schemas/VerbatimTranscriptionMode'
+        timestamp_granularities:
+          type: array
+          description: Supports word.
+          items:
+            type: string
+        diarization_mode:
+          type: string
+          description: Supports speaker.
+        language_codes:
+          type: array
+          items:
+            type: string
+        custom_vocabulary:
+          type: array
+          items:
+            type: string
+    SmartTranscriptionMode:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - smart
+    VerbatimTranscriptionMode:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - verbatim
+    SpeakerConfig:
+      type: object
+      properties:
+        speakers:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionSpeechConfig'
+    AgentConfig:
+      description: Only valid when agent is set. Field definitions for Deep Research, CodeMender and Dynamic
+        configs are not in the retrievable docs text.
+      oneOf:
+      - $ref: '#/components/schemas/AntigravityAgentConfig'
+      - $ref: '#/components/schemas/CodeMenderAgentConfig'
+      - $ref: '#/components/schemas/DeepResearchAgentConfig'
+      - $ref: '#/components/schemas/DynamicAgentConfig'
+    AntigravityAgentConfig:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - antigravity
+        model:
+          type: string
+          description: Model used for reasoning.
+        max_total_tokens:
+          type: string
+          description: Token limit for the run.
+    CodeMenderAgentConfig:
+      type: object
+      description: Fields not documented in the retrievable page text.
+      properties:
+        type:
+          type: string
+      additionalProperties: true
+    DeepResearchAgentConfig:
+      type: object
+      description: Fields not documented in the retrievable page text.
+      properties:
+        type:
+          type: string
+      additionalProperties: true
+    DynamicAgentConfig:
+      type: object
+      description: Fields not documented in the retrievable page text.
+      properties:
+        type:
+          type: string
+      additionalProperties: true
+    EnvironmentConfig:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - remote
+        network:
+          $ref: '#/components/schemas/EnvironmentNetwork'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        env:
+          type: object
+          description: Environment variables for the sandbox.
+          additionalProperties:
+            type: string
+        environment_id:
+          type: string
+          description: If specified, updates the existing environment instead of creating a new one.
+    EnvironmentNetwork:
+      description: EnvironmentNetworkEgressAllowlist object, or the string disabled (blocks all network
+        egress).
+      oneOf:
+      - $ref: '#/components/schemas/EnvironmentNetworkEgressAllowlist'
+      - type: string
+        enum:
+        - disabled
+    EnvironmentNetworkEgressAllowlist:
+      type: object
+      properties:
+        allowlist:
+          description: List of allowed domains and their configurations, or the string disabled.
+          oneOf:
+          - type: array
+            items:
+              $ref: '#/components/schemas/EgressRule'
+          - type: string
+            enum:
+            - disabled
+    EgressRule:
+      type: object
+      description: Fields not defined on the docs pages (domain and transform appear only in an example).
+      properties:
+        domain:
+          type: string
+      additionalProperties: true
+    Source:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'gcs: Cloud Storage bucket; inline: inline content; repository: generic repository
+            (provider identified by URL prefix); skill_registry: a Skill Registry resource.'
+          enum:
+          - gcs
+          - inline
+          - repository
+          - skill_registry
+        source:
+          type: string
+          description: Cloud Storage path or GitHub path.
+        target:
+          type: string
+          description: Where the source appears in the environment.
+        content:
+          type: string
+          description: Inline content when type is inline.
+        encoding:
+          type: string
+          description: For inline content, for example base64.
+        from_environment:
+          type: string
+          description: Request bodies only (CreateEnvironment). Format environments/{environment_id} or
+            {environment_id}. If set, sources and env must be empty.
+    CodeExecutionTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - code_execution
+    ComputerUseTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - computer_use
+        environment:
+          type: string
+          enum:
+          - browser
+          - mobile
+          - desktop
+        excluded_predefined_functions:
+          type: array
+          items:
+            type: string
+        enable_prompt_injection_detection:
+          type: boolean
+        disabled_safety_policies:
+          type: array
+          items:
+            type: string
+            enum:
+            - financial_transactions
+            - sensitive_data_modification
+            - communication_tool
+            - account_creation
+            - data_modification
+            - user_consent_management
+            - legal_terms_and_agreements
+    FileSearchTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - file_search
+        file_search_store_names:
+          type: array
+          items:
+            type: string
+        top_k:
+          type: integer
+        metadata_filter:
+          type: string
+    FunctionTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - function
+        name:
+          type: string
+        description:
+          type: string
+        parameters:
+          type: object
+          description: JSON Schema subset (some constraints such as minLength are ignored).
+          additionalProperties: true
+    GoogleMapsTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - google_maps
+        enable_widget:
+          type: boolean
+        latitude:
+          type: number
+        longitude:
+          type: number
+    GoogleSearchTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - google_search
+        search_types:
+          type: array
+          items:
+            type: string
+            enum:
+            - web_search
+            - image_search
+            - enterprise_web_search
+    McpServerTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_server
+        name:
+          type: string
+        url:
+          type: string
+        headers:
+          type: object
+          description: Authentication headers, timeouts and similar.
+          additionalProperties:
+            type: string
+        allowed_tools:
+          description: Documented as AllowedTools (the Tool resource lists it as an array of AllowedTools).
+          oneOf:
+          - $ref: '#/components/schemas/AllowedTools'
+          - type: array
+            items:
+              $ref: '#/components/schemas/AllowedTools'
+    AllowedTools:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - auto
+          - any
+          - none
+          - validated
+        tools:
+          type: array
+          items:
+            type: string
+    RetrievalTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - retrieval
+        retrieval_types:
+          type: array
+          items:
+            type: string
+            enum:
+            - rag_store
+            - exa_ai_search
+            - parallel_ai_search
+        exa_ai_search_config:
+          type: object
+          required:
+          - api_key
+          properties:
+            api_key:
+              type: string
+            custom_config:
+              type: object
+              additionalProperties: true
+        parallel_ai_search_config:
+          type: object
+          properties:
+            api_key:
+              type: string
+            custom_config:
+              type: object
+              additionalProperties: true
+        rag_store_config:
+          type: object
+          properties:
+            rag_resources:
+              type: array
+              items:
+                type: object
+                properties:
+                  rag_corpus:
+                    type: string
+                  rag_file_ids:
+                    type: array
+                    items:
+                      type: string
+            rag_retrieval_config:
+              type: object
+              properties:
+                filter:
+                  type: object
+                  properties:
+                    metadata_filter:
+                      type: string
+                    vector_distance_threshold:
+                      type: number
+                    vector_similarity_threshold:
+                      type: number
+                hybrid_search:
+                  type: object
+                  properties:
+                    alpha:
+                      type: number
+                      description: Weights dense versus sparse results.
+                ranking:
+                  type: object
+                  properties:
+                    model_name:
+                      type: string
+                rank_service:
+                  type: object
+                  properties:
+                    model_name:
+                      type: string
+                    ranking_config:
+                      type: object
+                      additionalProperties: true
+                    top_k:
+                      type: integer
+    UrlContextTool:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - url_context
+    ResponseFormat:
+      description: Variants discriminated by type.
+      oneOf:
+      - $ref: '#/components/schemas/AudioResponseFormat'
+      - $ref: '#/components/schemas/ImageResponseFormat'
+      - $ref: '#/components/schemas/TextResponseFormat'
+      - $ref: '#/components/schemas/VideoResponseFormat'
+      discriminator:
+        propertyName: type
+        mapping:
+          audio: '#/components/schemas/AudioResponseFormat'
+          image: '#/components/schemas/ImageResponseFormat'
+          text: '#/components/schemas/TextResponseFormat'
+          video: '#/components/schemas/VideoResponseFormat'
+    AudioResponseFormat:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - audio
+        bit_rate:
+          type: integer
+        delivery:
+          type: string
+          enum:
+          - inline
+          - uri
+        mime_type:
+          type: string
+          enum:
+          - audio/mp3
+          - audio/ogg_opus
+          - audio/l16
+          - audio/wav
+          - audio/alaw
+          - audio/mulaw
+        sample_rate:
+          type: integer
+          description: Sample rate in Hz.
+    ImageResponseFormat:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - image
+        aspect_ratio:
+          type: string
+          enum:
+          - '1:1'
+          - '2:3'
+          - '3:2'
+          - '3:4'
+          - '4:3'
+          - '4:5'
+          - '5:4'
+          - '9:16'
+          - '16:9'
+          - '21:9'
+          - '1:8'
+          - '8:1'
+          - '1:4'
+          - '4:1'
+        delivery:
+          type: string
+          enum:
+          - inline
+          - uri
+        image_size:
+          type: string
+          enum:
+          - '512'
+          - 1K
+          - 2K
+          - 4K
+        mime_type:
+          type: string
+          enum:
+          - image/jpeg
+    TextResponseFormat:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+        mime_type:
+          type: string
+          enum:
+          - application/json
+          - text/plain
+        schema:
+          type: object
+          description: JSON schema the output must follow; applies when mime_type is application/json.
+          additionalProperties: true
+    VideoResponseFormat:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - video
+        aspect_ratio:
+          type: string
+          enum:
+          - '16:9'
+          - '9:16'
+        delivery:
+          type: string
+          enum:
+          - inline
+          - uri
+        duration:
+          type: string
+        gcs_uri:
+          type: string
+          description: Cloud Storage URI for output. Required for Vertex when delivery is uri.
+        resolution:
+          type: string
+          description: Default 720p.
+          enum:
+          - 360p
+          - 720p
+          - 1080p
+          - 4k
+    TextContent:
+      type: object
+      required:
+      - type
+      - text
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+        text:
+          type: string
+        annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Annotation'
+    ImageContent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - image
+        data:
+          type: string
+          description: Base64 data.
+        uri:
+          type: string
+        resolution:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - ultra_high
+        mime_type:
+          type: string
+          description: PNG, JPEG, WebP, HEIC, HEIF, GIF, BMP, TIFF.
+          enum:
+          - image/png
+          - image/jpeg
+          - image/webp
+          - image/heic
+          - image/heif
+          - image/gif
+          - image/bmp
+          - image/tiff
+    AudioContent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - audio
+        data:
+          type: string
+          description: Base64 data.
+        uri:
+          type: string
+        channels:
+          type: integer
+        sample_rate:
+          type: integer
+        mime_type:
+          type: string
+          description: WAV, MP3, AIFF, AAC, OGG, FLAC, MPEG, M4A, L16, OPUS, ALAW, MULAW, WEBM.
+          enum:
+          - audio/wav
+          - audio/mp3
+          - audio/aiff
+          - audio/aac
+          - audio/ogg
+          - audio/flac
+          - audio/mpeg
+          - audio/m4a
+          - audio/l16
+          - audio/opus
+          - audio/alaw
+          - audio/mulaw
+          - audio/webm
+    VideoContent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - video
+        data:
+          type: string
+          description: Base64 data.
+        uri:
+          type: string
+        name:
+          type: string
+        processing:
+          description: static or agentic, or a StaticMediaProcessing object.
+          oneOf:
+          - type: string
+            enum:
+            - static
+            - agentic
+          - $ref: '#/components/schemas/StaticMediaProcessing'
+        resolution:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - ultra_high
+        mime_type:
+          type: string
+          description: MP4, MPEG, MPG, MOV, AVI, FLV, WebM, WMV, 3GPP.
+          enum:
+          - video/mp4
+          - video/mpeg
+          - video/mpg
+          - video/mov
+          - video/avi
+          - video/x-flv
+          - video/webm
+          - video/wmv
+          - video/3gpp
+    DocumentContent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - document
+        data:
+          type: string
+          description: Base64 data.
+        uri:
+          type: string
+        mime_type:
+          type: string
+          enum:
+          - application/pdf
+          - text/csv
+    StaticMediaProcessing:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - static
+        start_offset:
+          type: string
+          description: Decimal seconds with an s suffix, for example 10.5s; non-negative.
+        end_offset:
+          type: string
+          description: Decimal seconds with an s suffix; non-negative and greater than start_offset if
+            set.
+        fps:
+          type: number
+          description: Frame-rate sampling density.
+    Annotation:
+      description: Annotation variants on TextContent, discriminated by type. All start_index and end_index
+        values are byte offsets; end_index is exclusive.
+      oneOf:
+      - $ref: '#/components/schemas/FileCitation'
+      - $ref: '#/components/schemas/PlaceCitation'
+      - $ref: '#/components/schemas/UrlCitation'
+      - $ref: '#/components/schemas/SpeechAnnotation'
+      - $ref: '#/components/schemas/WordInfo'
+      discriminator:
+        propertyName: type
+        mapping:
+          file_citation: '#/components/schemas/FileCitation'
+          place_citation: '#/components/schemas/PlaceCitation'
+          url_citation: '#/components/schemas/UrlCitation'
+          speech_metadata: '#/components/schemas/SpeechAnnotation'
+          word_info: '#/components/schemas/WordInfo'
+    FileCitation:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - file_citation
+        document_uri:
+          type: string
+        file_name:
+          type: string
+        source:
+          type: string
+        custom_metadata:
+          type: object
+          additionalProperties: true
+        page_number:
+          type: integer
+        start_index:
+          type: integer
+        end_index:
+          type: integer
+        media_id:
+          type: string
+    PlaceCitation:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - place_citation
+        place_id:
+          type: string
+          description: Format places/{place_id}.
+        name:
+          type: string
+        url:
+          type: string
+        review_snippets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewSnippet'
+    ReviewSnippet:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        review_id:
+          type: string
+        start_index:
+          type: integer
+        end_index:
+          type: integer
+    UrlCitation:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - url_citation
+        url:
+          type: string
+        title:
+          type: string
+        start_index:
+          type: integer
+        end_index:
+          type: integer
+    SpeechAnnotation:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - speech_metadata
+        speaker:
+          type: string
+        style:
+          type: string
+        start_index:
+          type: integer
+        end_index:
+          type: integer
+    WordInfo:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - word_info
+        text:
+          type: string
+        start_offset:
+          type: string
+          description: Time offset; present when timestamp_granularities includes word.
+        end_offset:
+          type: string
+          description: Time offset; present when timestamp_granularities includes word.
+        speaker:
+          type: string
+          description: Present when diarization_mode is set.
+        start_index:
+          type: integer
+        end_index:
+          type: integer
+    Step:
+      type: object
+      description: 'A step in an interaction. The Step resource definition is not present in the retrievable
+        docs text; only these type values appear in examples: user_input (content array), model_output
+        (content array), function_call (name, arguments, id). Streaming step.delta payload types (see
+        StepDeltaData) indicate further step types.'
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          description: Step type, for example user_input, model_output, function_call.
+        content:
+          type: array
+          description: For user_input and model_output steps.
+          items:
+            $ref: '#/components/schemas/InteractionContent'
+        id:
+          type: string
+          description: For function_call steps.
+        name:
+          type: string
+          description: For function_call steps.
+        arguments:
+          type: object
+          description: For function_call steps.
+          additionalProperties: true
+      additionalProperties: true
+    ResponseModality:
+      type: string
+      enum:
+      - text
+      - image
+      - audio
+      - video
+      - document
+    ModalityTokens:
+      type: object
+      properties:
+        modality:
+          $ref: '#/components/schemas/ResponseModality'
+        tokens:
+          type: integer
+    GroundingToolCount:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - google_search
+          - google_maps
+          - retrieval
+        count:
+          type: integer
+    Usage:
+      type: object
+      properties:
+        total_input_tokens:
+          type: integer
+        input_tokens_by_modality:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokens'
+        total_cached_tokens:
+          type: integer
+        cached_tokens_by_modality:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokens'
+        total_output_tokens:
+          type: integer
+        output_tokens_by_modality:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokens'
+        total_tool_use_tokens:
+          type: integer
+        tool_use_tokens_by_modality:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModalityTokens'
+        total_thought_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+        grounding_tool_count:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroundingToolCount'
+    InteractionSseEvent:
+      description: Server-sent event payloads, discriminated by event_type.
+      oneOf:
+      - $ref: '#/components/schemas/InteractionCreatedEvent'
+      - $ref: '#/components/schemas/InteractionCompletedEvent'
+      - $ref: '#/components/schemas/InteractionStatusUpdate'
+      - $ref: '#/components/schemas/StepStart'
+      - $ref: '#/components/schemas/StepDelta'
+      - $ref: '#/components/schemas/StepStop'
+      - $ref: '#/components/schemas/ErrorEvent'
+      discriminator:
+        propertyName: event_type
+        mapping:
+          interaction.created: '#/components/schemas/InteractionCreatedEvent'
+          interaction.completed: '#/components/schemas/InteractionCompletedEvent'
+          interaction.status_update: '#/components/schemas/InteractionStatusUpdate'
+          step.start: '#/components/schemas/StepStart'
+          step.delta: '#/components/schemas/StepDelta'
+          step.stop: '#/components/schemas/StepStop'
+          error: '#/components/schemas/ErrorEvent'
+    InteractionEventPayload:
+      type: object
+      description: Partial interaction object carried by interaction.created and interaction.completed.
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/InteractionStatus'
+        model:
+          $ref: '#/components/schemas/ModelOption'
+        agent:
+          $ref: '#/components/schemas/AgentOption'
+        created:
+          type: string
+        updated:
+          type: string
+        usage:
+          $ref: '#/components/schemas/Usage'
+        service_tier:
+          $ref: '#/components/schemas/ServiceTier'
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        continuation_token:
+          type: string
+        object:
+          type: string
+    InteractionCreatedEvent:
+      type: object
+      required:
+      - event_type
+      - interaction
+      properties:
+        event_type:
+          type: string
+          enum:
+          - interaction.created
+        interaction:
+          $ref: '#/components/schemas/InteractionEventPayload'
+        event_id:
+          type: string
+    InteractionCompletedEvent:
+      type: object
+      required:
+      - event_type
+      - interaction
+      properties:
+        event_type:
+          type: string
+          enum:
+          - interaction.completed
+        interaction:
+          $ref: '#/components/schemas/InteractionEventPayload'
+        event_id:
+          type: string
+    InteractionStatusUpdate:
+      type: object
+      required:
+      - event_type
+      - interaction_id
+      - status
+      properties:
+        event_type:
+          type: string
+          enum:
+          - interaction.status_update
+        interaction_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/InteractionStatus'
+        continuation_token:
+          type: string
+        usage:
+          $ref: '#/components/schemas/Usage'
+        event_id:
+          type: string
+    StepStart:
+      type: object
+      required:
+      - event_type
+      - index
+      - step
+      properties:
+        event_type:
+          type: string
+          enum:
+          - step.start
+        index:
+          type: integer
+        step:
+          $ref: '#/components/schemas/Step'
+        event_id:
+          type: string
+          description: Token used to resume the interaction stream from this event.
+    StepStop:
+      type: object
+      required:
+      - event_type
+      - index
+      properties:
+        event_type:
+          type: string
+          enum:
+          - step.stop
+        index:
+          type: integer
+    StepDelta:
+      type: object
+      required:
+      - event_type
+      - index
+      - delta
+      properties:
+        event_type:
+          type: string
+          enum:
+          - step.delta
+        index:
+          type: integer
+        delta:
+          $ref: '#/components/schemas/StepDeltaData'
+        event_id:
+          type: string
+        metadata:
+          type: object
+          description: StepDeltaMetadata.
+          properties:
+            total_usage:
+              $ref: '#/components/schemas/Usage'
+    ErrorEvent:
+      type: object
+      required:
+      - event_type
+      properties:
+        event_type:
+          type: string
+          enum:
+          - error
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: URI string.
+            message:
+              type: string
+        event_id:
+          type: string
+    StepDeltaData:
+      description: Delta payload variants discriminated by type. Only the variants and fields visible
+        in the docs text are modelled; unlisted fields are allowed.
+      oneOf:
+      - $ref: '#/components/schemas/ArgumentsDelta'
+      - $ref: '#/components/schemas/AudioDelta'
+      - $ref: '#/components/schemas/CodeExecutionCallDelta'
+      - $ref: '#/components/schemas/CodeExecutionResultDelta'
+      - $ref: '#/components/schemas/DocumentDelta'
+      - $ref: '#/components/schemas/FileSearchCallDelta'
+      - $ref: '#/components/schemas/FileSearchResultDelta'
+      - $ref: '#/components/schemas/FunctionResultDelta'
+      - $ref: '#/components/schemas/GoogleMapsCallDelta'
+      - $ref: '#/components/schemas/GoogleMapsResultDelta'
+      - $ref: '#/components/schemas/GoogleSearchCallDelta'
+      - $ref: '#/components/schemas/GoogleSearchResultDelta'
+      - $ref: '#/components/schemas/ImageDelta'
+      - $ref: '#/components/schemas/McpServerToolCallDelta'
+      - $ref: '#/components/schemas/McpServerToolResultDelta'
+      - $ref: '#/components/schemas/ProcessingCallDelta'
+      - $ref: '#/components/schemas/ProcessingResultDelta'
+      - $ref: '#/components/schemas/RetrievalCallDelta'
+      - $ref: '#/components/schemas/RetrievalResultDelta'
+      - $ref: '#/components/schemas/TextAnnotationDelta'
+      - $ref: '#/components/schemas/TextDelta'
+      - $ref: '#/components/schemas/ThoughtSignatureDelta'
+      - $ref: '#/components/schemas/ThoughtSummaryDelta'
+      - $ref: '#/components/schemas/UrlContextCallDelta'
+      - $ref: '#/components/schemas/UrlContextResultDelta'
+      - $ref: '#/components/schemas/VideoDelta'
+      discriminator:
+        propertyName: type
+        mapping:
+          arguments_delta: '#/components/schemas/ArgumentsDelta'
+          audio: '#/components/schemas/AudioDelta'
+          code_execution_call: '#/components/schemas/CodeExecutionCallDelta'
+          code_execution_result: '#/components/schemas/CodeExecutionResultDelta'
+          document: '#/components/schemas/DocumentDelta'
+          file_search_call: '#/components/schemas/FileSearchCallDelta'
+          file_search_result: '#/components/schemas/FileSearchResultDelta'
+          function_result: '#/components/schemas/FunctionResultDelta'
+          google_maps_call: '#/components/schemas/GoogleMapsCallDelta'
+          google_maps_result: '#/components/schemas/GoogleMapsResultDelta'
+          google_search_call: '#/components/schemas/GoogleSearchCallDelta'
+          google_search_result: '#/components/schemas/GoogleSearchResultDelta'
+          image: '#/components/schemas/ImageDelta'
+          mcp_server_tool_call: '#/components/schemas/McpServerToolCallDelta'
+          mcp_server_tool_result: '#/components/schemas/McpServerToolResultDelta'
+          processing_call: '#/components/schemas/ProcessingCallDelta'
+          processing_result: '#/components/schemas/ProcessingResultDelta'
+          retrieval_call: '#/components/schemas/RetrievalCallDelta'
+          retrieval_result: '#/components/schemas/RetrievalResultDelta'
+          text_annotation_delta: '#/components/schemas/TextAnnotationDelta'
+          text: '#/components/schemas/TextDelta'
+          thought_signature: '#/components/schemas/ThoughtSignatureDelta'
+          thought_summary: '#/components/schemas/ThoughtSummaryDelta'
+          url_context_call: '#/components/schemas/UrlContextCallDelta'
+          url_context_result: '#/components/schemas/UrlContextResultDelta'
+          video: '#/components/schemas/VideoDelta'
+    ArgumentsDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - arguments_delta
+        arguments:
+          type: string
+    AudioDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - audio
+        data:
+          type: string
+        uri:
+          type: string
+        mime_type:
+          type: string
+          enum:
+          - audio/wav
+          - audio/mp3
+          - audio/aiff
+          - audio/aac
+          - audio/ogg
+          - audio/flac
+          - audio/mpeg
+          - audio/m4a
+          - audio/l16
+          - audio/opus
+          - audio/alaw
+          - audio/mulaw
+          - audio/webm
+        sample_rate:
+          type: integer
+        channels:
+          type: integer
+    CodeExecutionCallDelta:
+      type: object
+      required:
+      - type
+      - arguments
+      properties:
+        type:
+          type: string
+          enum:
+          - code_execution_call
+        arguments:
+          type: object
+          properties:
+            language:
+              type: string
+              enum:
+              - python
+              - bash
+            code:
+              type: string
+        signature:
+          type: string
+    CodeExecutionResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - code_execution_result
+        result:
+          type: string
+        is_error:
+          type: boolean
+        signature:
+          type: string
+    DocumentDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - document
+        data:
+          type: string
+        uri:
+          type: string
+        mime_type:
+          type: string
+          enum:
+          - application/pdf
+          - text/csv
+    FileSearchCallDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - file_search_call
+        signature:
+          type: string
+    FileSearchResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - file_search_result
+        result:
+          type: array
+          description: Array of FileSearchResult (fields not defined in the retrievable text).
+          items:
+            type: object
+            additionalProperties: true
+        signature:
+          type: string
+    FunctionResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - function_result
+        result:
+          $ref: '#/components/schemas/ToolResultValue'
+        name:
+          type: string
+        is_error:
+          type: boolean
+    ToolResultValue:
+      description: Array of ImageContent or TextContent, an object, or a string.
+      oneOf:
+      - type: array
+        items:
+          oneOf:
+          - $ref: '#/components/schemas/ImageContent'
+          - $ref: '#/components/schemas/TextContent'
+      - type: object
+        additionalProperties: true
+      - type: string
+    GoogleMapsCallDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - google_maps_call
+        arguments:
+          type: object
+          properties:
+            queries:
+              type: array
+              items:
+                type: string
+        signature:
+          type: string
+    GoogleMapsResultDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - google_maps_result
+        result:
+          type: array
+          description: Array of GoogleMapsResult.
+          items:
+            type: object
+            properties:
+              places:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              review_snippets:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewSnippet'
+        widget_context_token:
+          type: string
+        signature:
+          type: string
+    GoogleSearchCallDelta:
+      type: object
+      required:
+      - type
+      - arguments
+      properties:
+        type:
+          type: string
+          enum:
+          - google_search_call
+        arguments:
+          type: object
+          required:
+          - queries
+          properties:
+            queries:
+              type: array
+              items:
+                type: string
+        signature:
+          type: string
+    GoogleSearchResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - google_search_result
+        result:
+          type: array
+          description: Array of GoogleSearchResult.
+          items:
+            type: object
+            properties:
+              search_suggestions:
+                type: string
+        is_error:
+          type: boolean
+        signature:
+          type: string
+    ImageDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - image
+        data:
+          type: string
+        uri:
+          type: string
+        mime_type:
+          type: string
+          enum:
+          - image/png
+          - image/jpeg
+          - image/webp
+          - image/heic
+          - image/heif
+          - image/gif
+          - image/bmp
+          - image/tiff
+        resolution:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - ultra_high
+    McpServerToolCallDelta:
+      type: object
+      required:
+      - type
+      - name
+      - server_name
+      - arguments
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_server_tool_call
+        name:
+          type: string
+        server_name:
+          type: string
+        arguments:
+          type: object
+          additionalProperties: true
+    McpServerToolResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_server_tool_result
+        result:
+          $ref: '#/components/schemas/ToolResultValue'
+        name:
+          type: string
+        server_name:
+          type: string
+    ProcessingCallDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - processing_call
+        signature:
+          type: string
+    ProcessingResultDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - processing_result
+        signature:
+          type: string
+    RetrievalCallDelta:
+      type: object
+      required:
+      - type
+      - arguments
+      properties:
+        type:
+          type: string
+          enum:
+          - retrieval_call
+        arguments:
+          type: object
+          required:
+          - queries
+          properties:
+            queries:
+              type: array
+              items:
+                type: string
+        retrieval_type:
+          type: string
+          enum:
+          - rag_store
+          - exa_ai_search
+          - parallel_ai_search
+        signature:
+          type: string
+    RetrievalResultDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - retrieval_result
+        is_error:
+          type: boolean
+        signature:
+          type: string
+    TextAnnotationDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - text_annotation_delta
+        annotations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Annotation'
+    TextDelta:
+      type: object
+      required:
+      - type
+      - text
+      properties:
+        type:
+          type: string
+          enum:
+          - text
+        text:
+          type: string
+    ThoughtSignatureDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - thought_signature
+        signature:
+          type: string
+    ThoughtSummaryDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - thought_summary
+        content:
+          $ref: '#/components/schemas/InteractionContent'
+    UrlContextCallDelta:
+      type: object
+      required:
+      - type
+      - arguments
+      properties:
+        type:
+          type: string
+          enum:
+          - url_context_call
+        arguments:
+          type: object
+          required:
+          - urls
+          properties:
+            urls:
+              type: array
+              items:
+                type: string
+        signature:
+          type: string
+    UrlContextResultDelta:
+      type: object
+      required:
+      - type
+      - result
+      properties:
+        type:
+          type: string
+          enum:
+          - url_context_result
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              status:
+                type: string
+                enum:
+                - success
+                - error
+                - paywall
+                - unsafe
+        is_error:
+          type: boolean
+        signature:
+          type: string
+    VideoDelta:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - video
+        data:
+          type: string
+        uri:
+          type: string
+        mime_type:
+          type: string
+          enum:
+          - video/mp4
+          - video/mpeg
+          - video/mpg
+          - video/mov
+          - video/avi
+          - video/x-flv
+          - video/webm
+          - video/wmv
+          - video/3gpp
+          - video/jpeg2000
+        resolution:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - ultra_high
+    CreateAgentRequest:
+      type: object
+      description: All fields optional.
+      properties:
+        id:
+          type: string
+        base_agent:
+          type: string
+          description: The base agent to extend.
+        system_instruction:
+          type: string
+        description:
+          type: string
+        agent_config:
+          $ref: '#/components/schemas/AntigravityAgentConfig'
+        base_environment:
+          description: EnvironmentConfig or an environment ID string.
+          oneOf:
+          - $ref: '#/components/schemas/EnvironmentConfig'
+          - type: string
+        sources:
+          type: array
+          description: Listed at top level of the request body in the field list but nested under base_environment
+            in examples.
+          items:
+            $ref: '#/components/schemas/Source'
+        environment_id:
+          type: string
+          description: If specified, the request will update the existing environment instead of creating
+            a new one.
+        env:
+          type: object
+          description: Environment variables for the sandbox.
+          additionalProperties:
+            type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentTool'
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier.
+        base_agent:
+          type: string
+        system_instruction:
+          type: string
+        description:
+          type: string
+        agent_config:
+          $ref: '#/components/schemas/AntigravityAgentConfig'
+        base_environment:
+          oneOf:
+          - $ref: '#/components/schemas/EnvironmentConfig'
+          - type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentTool'
+    ListAgentsResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+        next_page_token:
+          type: string
+    AgentTool:
+      description: Agent tool variants discriminated by type.
+      oneOf:
+      - $ref: '#/components/schemas/CodeExecutionTool'
+      - $ref: '#/components/schemas/FunctionTool'
+      - $ref: '#/components/schemas/GoogleSearchTool'
+      - $ref: '#/components/schemas/McpServerTool'
+      - $ref: '#/components/schemas/UrlContextTool'
+      discriminator:
+        propertyName: type
+        mapping:
+          code_execution: '#/components/schemas/CodeExecutionTool'
+          function: '#/components/schemas/FunctionTool'
+          google_search: '#/components/schemas/GoogleSearchTool'
+          mcp_server: '#/components/schemas/McpServerTool'
+          url_context: '#/components/schemas/UrlContextTool'
+    WebhookEventType:
+      type: string
+      enum:
+      - batch.succeeded
+      - batch.expired
+      - batch.failed
+      - interaction.requires_action
+      - interaction.completed
+      - interaction.failed
+      - video.generated
+    WebhookState:
+      type: string
+      enum:
+      - enabled
+      - disabled
+      - disabled_due_to_failed_deliveries
+    SigningSecret:
+      type: object
+      properties:
+        expire_time:
+          type: string
+          readOnly: true
+        truncated_secret:
+          type: string
+          readOnly: true
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: User-provided name.
+        uri:
+          type: string
+          description: Destination for events (required on create).
+        subscribed_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        state:
+          allOf:
+          - $ref: '#/components/schemas/WebhookState'
+          readOnly: true
+        signing_secrets:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/SigningSecret'
+        new_signing_secret:
+          type: string
+          readOnly: true
+          description: Populated only on create.
+        create_time:
+          type: string
+          readOnly: true
+        update_time:
+          type: string
+          readOnly: true
+    CreateWebhookRequest:
+      type: object
+      required:
+      - subscribed_events
+      - uri
+      properties:
+        name:
+          type: string
+          description: User-provided name.
+        subscribed_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        uri:
+          type: string
+          description: Destination for events.
+    UpdateWebhookRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        state:
+          $ref: '#/components/schemas/WebhookState'
+        subscribed_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEventType'
+        uri:
+          type: string
+    RotateSigningSecretRequest:
+      type: object
+      properties:
+        revocation_behavior:
+          type: string
+          description: Default is revoke_previous_secrets_after_h24.
+          enum:
+          - revoke_previous_secrets_after_h24
+          - revoke_previous_secrets_immediately
+    RotateSigningSecretResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+          readOnly: true
+          description: The newly generated secret.
+    ListWebhooksResponse:
+      type: object
+      properties:
+        webhooks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Webhook'
+        next_page_token:
+          type: string
+          description: Omitted when no further pages exist.
+    AgentInteraction:
+      type: object
+      description: Interaction template executed by a trigger. Same fields in request and response.
+      properties:
+        agent:
+          $ref: '#/components/schemas/AgentOption'
+        agent_config:
+          $ref: '#/components/schemas/AgentConfig'
+        background:
+          type: boolean
+          description: Input only.
+        environment:
+          oneOf:
+          - $ref: '#/components/schemas/EnvironmentConfig'
+          - type: string
+        input:
+          $ref: '#/components/schemas/InteractionInput'
+        labels:
+          $ref: '#/components/schemas/Labels'
+        previous_interaction_id:
+          type: string
+        response_format:
+          oneOf:
+          - $ref: '#/components/schemas/ResponseFormat'
+          - type: array
+            items:
+              $ref: '#/components/schemas/ResponseFormat'
+        safety_settings:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionSafetySetting'
+        service_tier:
+          $ref: '#/components/schemas/ServiceTier'
+        store:
+          type: boolean
+          description: Input only.
+        stream:
+          type: boolean
+          description: Input only.
+        system_instruction:
+          type: string
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractionTool'
+        webhook_config:
+          $ref: '#/components/schemas/InteractionWebhookConfig'
+    TriggerStatus:
+      type: string
+      enum:
+      - active
+      - paused
+      - error
+    CreateTriggerRequest:
+      type: object
+      required:
+      - interaction
+      - schedule
+      - time_zone
+      properties:
+        display_name:
+          type: string
+        environment_id:
+          type: string
+        execution_timeout_seconds:
+          type: integer
+        interaction:
+          $ref: '#/components/schemas/AgentInteraction'
+        max_consecutive_failures:
+          type: integer
+        schedule:
+          type: string
+          description: Cron format.
+        time_zone:
+          type: string
+    UpdateTriggerRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+        status:
+          $ref: '#/components/schemas/TriggerStatus'
+    Trigger:
+      type: object
+      description: Assembled from endpoint response fields; the Trigger resource section was not retrievable.
+      properties:
+        id:
+          type: string
+        display_name:
+          type: string
+        interaction:
+          $ref: '#/components/schemas/AgentInteraction'
+        environment_id:
+          type: string
+        execution_timeout_seconds:
+          type: integer
+        max_consecutive_failures:
+          type: integer
+        consecutive_failure_count:
+          type: integer
+          readOnly: true
+        schedule:
+          type: string
+          description: Standard cron format.
+        time_zone:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/TriggerStatus'
+          readOnly: true
+        create_time:
+          type: string
+          readOnly: true
+        update_time:
+          type: string
+          readOnly: true
+        last_run_time:
+          type: string
+          readOnly: true
+        next_run_time:
+          type: string
+          readOnly: true
+        last_pause_time:
+          type: string
+          readOnly: true
+        last_resume_time:
+          type: string
+          readOnly: true
+        previous_interaction_id:
+          type: string
+          readOnly: true
+    TriggerExecution:
+      type: object
+      properties:
+        id:
+          type: string
+        trigger_id:
+          type: string
+        interaction_id:
+          type: string
+        environment_id:
+          type: string
+        status:
+          type: string
+          enum:
+          - in_progress
+          - completed
+          - failed
+          - skipped
+          - timed_out
+        scheduled_time:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        error:
+          type: string
+    ListTriggersResponse:
+      type: object
+      properties:
+        triggers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trigger'
+        next_page_token:
+          type: string
+    ListTriggerExecutionsResponse:
+      type: object
+      properties:
+        trigger_executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerExecution'
+        next_page_token:
+          type: string
+    CreateEnvironmentRequest:
+      type: object
+      properties:
+        network:
+          $ref: '#/components/schemas/EnvironmentNetwork'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+    Environment:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        network:
+          $ref: '#/components/schemas/EnvironmentNetwork'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        created:
+          type: string
+          readOnly: true
+          description: ISO 8601 (YYYY-MM-DDThh:mm:ssZ).
+        updated:
+          type: string
+          readOnly: true
+          description: ISO 8601.
+        last_accessed:
+          type: string
+          readOnly: true
+          description: ISO 8601.
+        status:
+          type: string
+          readOnly: true
+          enum:
+          - active
+          - expired
+        file_count:
+          type: string
+          readOnly: true
+        size_bytes:
+          type: string
+          readOnly: true
+    ListEnvironmentsResponse:
+      type: object
+      properties:
+        environments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Environment'
+        next_page_token:
+          type: string
+    EnvironmentFile:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+        path:
+          type: string
+          readOnly: true
+          description: Relative path, for example workspace/src/main.py.
+        type:
+          type: string
+          readOnly: true
+          enum:
+          - file
+          - directory
+        size_bytes:
+          type: string
+          readOnly: true
+        mime_type:
+          type: string
+          readOnly: true
+          description: Empty for directories.
+        created:
+          type: string
+          readOnly: true
+        modified:
+          type: string
+          readOnly: true
+    GetEnvironmentFilesResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          description: Directory contents, or a single entry for a file. Empty when alt=media is specified.
+          items:
+            $ref: '#/components/schemas/EnvironmentFile'
+        next_page_token:
+          type: string
+    PromptedVoice:
+      type: object
+      required:
+      - input
+      properties:
+        base_voice:
+          type: string
+          description: Voice name (prebuilt) or ID (voice_...) to edit or remix.
+        input:
+          type: string
+          description: Natural-language voice description.
+        region_code:
+          type: string
+          description: ISO 3166-1 alpha-2 or UN M.49, for example US or 001.
+    AudioData:
+      type: object
+      required:
+      - data
+      - mime_type
+      properties:
+        data:
+          type: string
+          description: Raw audio bytes.
+        mime_type:
+          type: string
+          description: IANA MIME type, for example audio/wav or audio/mpeg.
+    Voice:
+      type: object
+      properties:
+        accent:
+          type: string
+          description: For example American, British.
+        context:
+          type: string
+          description: For example Conversational, Audiobook, News.
+        description:
+          type: string
+          description: Timbre, personality, tone.
+        display_name:
+          type: string
+          description: Stored voice name or prebuilt catalog name.
+        expire_time:
+          type: string
+          readOnly: true
+          description: Unset for prebuilt voices.
+        gender:
+          type: string
+          description: For example female, male, neutral.
+        id:
+          type: string
+          readOnly: true
+          description: voice_ prefix for stored voices; speaker name for prebuilt; unset when store=false.
+        key:
+          type: string
+          readOnly: true
+          description: voicekey_ prefix; returned only by CreateVoice for replicated voices with store=false.
+        language_code:
+          type: string
+          description: BCP-47, for example en-US.
+        model:
+          type: string
+          description: Model used to design or replicate; unset for prebuilt.
+        persona:
+          type: string
+          description: For example Warm, Friendly or Narrator.
+        pitch:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+        prompted:
+          $ref: '#/components/schemas/PromptedVoice'
+        sample_audio:
+          allOf:
+          - $ref: '#/components/schemas/AudioData'
+          readOnly: true
+        type:
+          type: string
+          description: Described as required although listed as optional.
+          enum:
+          - replicated
+          - prompted
+          - prebuilt
+        usage:
+          allOf:
+          - $ref: '#/components/schemas/Usage'
+          readOnly: true
+    CreateVoiceRequest:
+      type: object
+      required:
+      - voice
+      properties:
+        store:
+          type: boolean
+          default: false
+          description: Must be true when voice.type is prompted.
+        voice:
+          $ref: '#/components/schemas/Voice'
+    ListVoicesResponse:
+      type: object
+      properties:
+        voices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Voice'
+        next_page_token:
+          type: string
+          description: Empty when there are no more pages.
+    InjectionLocation:
+      type: string
+      enum:
+      - header
+      - query
+      - body
+    Credential:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        type:
+          type: string
+          readOnly: true
+          enum:
+          - bearer_token
+          - oauth2
+          - environment_variable
+        status:
+          type: string
+          readOnly: true
+          enum:
+          - active
+          - revoked
+        create_time:
+          type: string
+          readOnly: true
+        update_time:
+          type: string
+          readOnly: true
+    CreateCredentialRequest:
+      description: One of three variants. The discriminator values are not stated on the page; type values
+        below are inferred from the Credential type enum.
+      oneOf:
+      - $ref: '#/components/schemas/EnvironmentVariableConfig'
+      - $ref: '#/components/schemas/HttpBearerConfig'
+      - $ref: '#/components/schemas/OAuth2Config'
+    EnvironmentVariableConfig:
+      type: object
+      required:
+      - id
+      - type
+      - value
+      - injection_location
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - environment_variable
+        value:
+          type: string
+          writeOnly: true
+        injection_location:
+          description: At least one required.
+          oneOf:
+          - $ref: '#/components/schemas/InjectionLocation'
+          - type: array
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/InjectionLocation'
+        trusted_domains:
+          type: array
+          items:
+            type: string
+    HttpBearerConfig:
+      type: object
+      required:
+      - id
+      - type
+      - token
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - bearer_token
+        token:
+          type: string
+          writeOnly: true
+        header_name:
+          type: string
+          default: Authorization
+        prefix:
+          type: string
+          default: Bearer
+          description: Empty string for no prefix.
+    OAuth2Config:
+      type: object
+      required:
+      - id
+      - type
+      - client_id
+      - client_secret
+      - refresh_token
+      - token_url
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - oauth2
+        client_id:
+          type: string
+        client_secret:
+          type: string
+          writeOnly: true
+        refresh_token:
+          type: string
+          writeOnly: true
+        scopes:
+          type: array
+          items:
+            type: string
+        token_url:
+          type: string
+    UpdateCredentialRequest:
+      description: One of three update variants.
+      oneOf:
+      - $ref: '#/components/schemas/EnvironmentVariableUpdateConfig'
+      - $ref: '#/components/schemas/HttpBearerUpdateConfig'
+      - $ref: '#/components/schemas/OAuth2UpdateConfig'
+    EnvironmentVariableUpdateConfig:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - environment_variable
+        value:
+          type: string
+          writeOnly: true
+        injection_location:
+          oneOf:
+          - $ref: '#/components/schemas/InjectionLocation'
+          - type: array
+            items:
+              $ref: '#/components/schemas/InjectionLocation'
+        trusted_domains:
+          type: array
+          items:
+            type: string
+    HttpBearerUpdateConfig:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - bearer_token
+        token:
+          type: string
+          writeOnly: true
+        header_name:
+          type: string
+          default: Authorization
+        prefix:
+          type: string
+          default: Bearer
+    OAuth2UpdateConfig:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          type: string
+          enum:
+          - oauth2
+        client_id:
+          type: string
+        client_secret:
+          type: string
+          writeOnly: true
+        refresh_token:
+          type: string
+          writeOnly: true
+        scopes:
+          type: array
+          items:
+            type: string
+        token_url:
+          type: string
+    ListCredentialsResponse:
+      type: object
+      properties:
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Credential'
+        next_page_token:
+          type: string
+    InteractionContent:
+      description: Content variants discriminated by type.
+      oneOf:
+      - $ref: '#/components/schemas/TextContent'
+      - $ref: '#/components/schemas/ImageContent'
+      - $ref: '#/components/schemas/AudioContent'
+      - $ref: '#/components/schemas/VideoContent'
+      - $ref: '#/components/schemas/DocumentContent'
+      discriminator:
+        propertyName: type
+        mapping:
+          text: '#/components/schemas/TextContent'
+          image: '#/components/schemas/ImageContent'
+          audio: '#/components/schemas/AudioContent'
+          video: '#/components/schemas/VideoContent'
+          document: '#/components/schemas/DocumentContent'
+    InteractionTool:
+      description: Tool variants discriminated by type.
+      oneOf:
+      - $ref: '#/components/schemas/CodeExecutionTool'
+      - $ref: '#/components/schemas/ComputerUseTool'
+      - $ref: '#/components/schemas/FileSearchTool'
+      - $ref: '#/components/schemas/FunctionTool'
+      - $ref: '#/components/schemas/GoogleMapsTool'
+      - $ref: '#/components/schemas/GoogleSearchTool'
+      - $ref: '#/components/schemas/McpServerTool'
+      - $ref: '#/components/schemas/RetrievalTool'
+      - $ref: '#/components/schemas/UrlContextTool'
+      discriminator:
+        propertyName: type
+        mapping:
+          code_execution: '#/components/schemas/CodeExecutionTool'
+          computer_use: '#/components/schemas/ComputerUseTool'
+          file_search: '#/components/schemas/FileSearchTool'
+          function: '#/components/schemas/FunctionTool'
+          google_maps: '#/components/schemas/GoogleMapsTool'
+          google_search: '#/components/schemas/GoogleSearchTool'
+          mcp_server: '#/components/schemas/McpServerTool'
+          retrieval: '#/components/schemas/RetrievalTool'
+          url_context: '#/components/schemas/UrlContextTool'
+    InteractionGenerationConfig:
+      type: object
+      description: Only valid when model is set.
+      properties:
+        tool_choice:
+          description: ToolChoiceConfig object or one of auto, any, none, validated. ToolChoiceConfig
+            fields are not defined in the retrievable docs text.
+          oneOf:
+          - type: string
+            enum:
+            - auto
+            - any
+            - none
+            - validated
+          - $ref: '#/components/schemas/ToolChoiceConfig'
+        seed:
+          type: integer
+        stop_sequences:
+          type: array
+          items:
+            type: string
+        thinking_level:
+          type: string
+          enum:
+          - minimal
+          - low
+          - medium
+          - high
+        thinking_summaries:
+          type: string
+          enum:
+          - auto
+          - none
+        max_output_tokens:
+          type: integer
+        video_config:
+          type: object
+          properties:
+            task:
+              type: string
+              enum:
+              - text_to_video
+              - image_to_video
+              - reference_to_video
+              - edit
+              - extend
+        transcription_config:
+          $ref: '#/components/schemas/TranscriptionConfig'
+        speech_config:
+          description: SpeakerConfig or an array of SpeechConfig.
+          oneOf:
+          - $ref: '#/components/schemas/SpeakerConfig'
+          - type: array
+            items:
+              $ref: '#/components/schemas/InteractionSpeechConfig'
+    InteractionSafetySetting:
+      type: object
+      required:
+      - type
+      - threshold
+      properties:
+        type:
+          $ref: '#/components/schemas/InteractionHarmCategory'
+        threshold:
+          type: string
+          enum:
+          - block_low_and_above
+          - block_medium_and_above
+          - block_only_high
+          - block_none
+          - 'off'
+        method:
+          type: string
+          description: severity uses probability and severity; probability is the default.
+          enum:
+          - severity
+          - probability
+    InteractionHarmCategory:
+      type: string
+      enum:
+      - hate_speech
+      - dangerous_content
+      - harassment
+      - sexually_explicit
+      - image_hate
+      - image_dangerous_content
+      - image_harassment
+      - image_sexually_explicit
+      - jailbreak
+    InteractionSpeechConfig:
+      type: object
+      properties:
+        voice:
+          type: string
+        language:
+          type: string
+        speaker:
+          type: string
+          description: Should match a speaker name given in the prompt.
+    InteractionWebhookConfig:
+      type: object
+      properties:
+        uris:
+          type: array
+          description: Overrides registered webhooks when set.
+          items:
+            type: string
+        user_metadata:
+          type: object
+          description: Echoed on each event.
+          additionalProperties: true
+    Struct:
+      type: object
+      additionalProperties: true
+      description: Arbitrary JSON object (google.protobuf.Struct).
+    ListOperationsResponse:
+      type: object
+      description: The response message for Operations.ListOperations. The page does not define this type;
+        fields follow the standard google.longrunning definition (unverified against Gemini docs).
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operation'
+        nextPageToken:
+          type: string
+        unreachable:
+          type: array
+          items:
+            type: string
+    FileState:
+      type: string
+      description: States for the lifecycle of a File.
+      enum:
+      - STATE_UNSPECIFIED
+      - PROCESSING
+      - ACTIVE
+      - FAILED
+    FileSource:
+      type: string
+      description: Where the file came from.
+      enum:
+      - SOURCE_UNSPECIFIED
+      - UPLOADED
+      - GENERATED
+      - REGISTERED
+    VideoFileMetadata:
+      type: object
+      description: Metadata for a video File.
+      properties:
+        videoDuration:
+          type: string
+          format: duration
+          description: 'Duration of the video in seconds with up to nine fractional digits, ending in
+            "s". Example: "3.5s".'
+    File:
+      type: object
+      description: A file uploaded to the API.
+      properties:
+        name:
+          type: string
+          description: Immutable. Identifier. The File resource name, e.g. files/123-456. Up to 40 characters
+            of lowercase alphanumeric or dashes, not starting or ending with a dash. Generated if empty
+            on create.
+        displayName:
+          type: string
+          description: Optional. Human-readable display name. Max 512 characters.
+        mimeType:
+          type: string
+          readOnly: true
+          description: Output only. MIME type of the file.
+        sizeBytes:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. Size of the file in bytes.
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Output only. RFC 3339 creation timestamp.
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Output only. RFC 3339 last-update timestamp.
+        expirationTime:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Output only. Expiration timestamp; set only if the File is scheduled to expire.
+        sha256Hash:
+          type: string
+          format: byte
+          readOnly: true
+          description: Output only. Base64-encoded SHA-256 hash of the uploaded bytes.
+        uri:
+          type: string
+          readOnly: true
+          description: Output only. The uri of the File.
+        downloadUri:
+          type: string
+          readOnly: true
+          description: Output only. The download uri of the File.
+        state:
+          allOf:
+          - $ref: '#/components/schemas/FileState'
+          readOnly: true
+        source:
+          $ref: '#/components/schemas/FileSource'
+        error:
+          allOf:
+          - $ref: '#/components/schemas/Status'
+          readOnly: true
+        videoMetadata:
+          allOf:
+          - $ref: '#/components/schemas/VideoFileMetadata'
+          readOnly: true
+          description: Output only. Member of the metadata union; at most one metadata field is set.
+    CreateFileRequest:
+      type: object
+      description: Request for media.upload.
+      properties:
+        file:
+          $ref: '#/components/schemas/File'
+    CreateFileResponse:
+      type: object
+      description: Response for media.upload.
+      properties:
+        file:
+          $ref: '#/components/schemas/File'
+    ListFilesResponse:
+      type: object
+      description: Response for files.list.
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+        nextPageToken:
+          type: string
+          description: A token that can be sent as a pageToken into a subsequent files.list call.
+    RegisterFilesRequest:
+      type: object
+      required:
+      - uris
+      properties:
+        uris:
+          type: array
+          description: 'Required. The Google Cloud Storage URIs to register. Example: gs://bucket/object.'
+          items:
+            type: string
+    RegisterFilesResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          description: The registered files.
+          items:
+            $ref: '#/components/schemas/File'
+    BatchState:
+      type: string
+      description: States for the lifecycle of a Batch.
+      enum:
+      - BATCH_STATE_UNSPECIFIED
+      - BATCH_STATE_PENDING
+      - BATCH_STATE_RUNNING
+      - BATCH_STATE_SUCCEEDED
+      - BATCH_STATE_FAILED
+      - BATCH_STATE_CANCELLED
+      - BATCH_STATE_EXPIRED
+    BatchStats:
+      type: object
+      description: Stats about the batch. All fields are output only.
+      properties:
+        requestCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: The total number of requests in the batch.
+        successfulRequestCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: The number of requests that were successfully processed.
+        failedRequestCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: The number of requests that failed to be processed.
+        pendingRequestCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: The number of requests that are still pending processing.
+    InlinedRequest:
+      type: object
+      required:
+      - request
+      properties:
+        request:
+          $ref: '#/components/schemas/BatchGenerateContentRequestItem'
+        metadata:
+          $ref: '#/components/schemas/Struct'
+    InlinedRequests:
+      type: object
+      required:
+      - requests
+      properties:
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/InlinedRequest'
+    InputConfig:
+      type: object
+      description: Configures the input to the batch request. Exactly one of fileName or requests (union
+        source).
+      properties:
+        fileName:
+          type: string
+          description: The name of the File containing the input requests.
+        requests:
+          $ref: '#/components/schemas/InlinedRequests'
+    InlinedResponse:
+      type: object
+      description: 'Response to a single request in the batch. Output only. Union output: error or response.'
+      properties:
+        metadata:
+          $ref: '#/components/schemas/Struct'
+        error:
+          $ref: '#/components/schemas/Status'
+        response:
+          $ref: '#/components/schemas/GenerateContentResponse'
+    InlinedResponses:
+      type: object
+      properties:
+        inlinedResponses:
+          type: array
+          description: Output only. Responses to the requests in the batch, in input order.
+          items:
+            $ref: '#/components/schemas/InlinedResponse'
+    GenerateContentBatchOutput:
+      type: object
+      description: 'Output of a batch request. Union output: responsesFile or inlinedResponses. Output
+        only.'
+      properties:
+        responsesFile:
+          type: string
+          description: Output only. The file ID of the file containing the responses (JSONL, one GenerateContentResponse
+            per line, in input order).
+        inlinedResponses:
+          $ref: '#/components/schemas/InlinedResponses'
+    GenerateContentBatch:
+      type: object
+      required:
+      - displayName
+      - inputConfig
+      description: A resource representing a batch of GenerateContent requests. The docs mark model as
+        required (it is taken from the path for batchGenerateContent and is in the body for updateGenerateContentBatch).
+      properties:
+        model:
+          type: string
+          description: 'Required. The name of the Model to use for generating the completion. Format:
+            models/{model}.'
+        name:
+          type: string
+          readOnly: true
+          description: 'Output only. Identifier. Resource name of the batch. Format: batches/{batchId}.'
+        displayName:
+          type: string
+          description: Required. The user-defined name of this batch.
+        inputConfig:
+          $ref: '#/components/schemas/InputConfig'
+        output:
+          allOf:
+          - $ref: '#/components/schemas/GenerateContentBatchOutput'
+          readOnly: true
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        endTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+        batchStats:
+          allOf:
+          - $ref: '#/components/schemas/BatchStats'
+          readOnly: true
+        state:
+          allOf:
+          - $ref: '#/components/schemas/BatchState'
+          readOnly: true
+        priority:
+          type: string
+          format: int64
+          description: Optional. Priority of the batch. Higher values are processed first; negative values
+            allowed. Default 0.
+        webhookConfig:
+          $ref: '#/components/schemas/WebhookConfig'
+    BatchGenerateContentRequest:
+      type: object
+      required:
+      - batch
+      properties:
+        batch:
+          $ref: '#/components/schemas/GenerateContentBatch'
+    EmbedContentBatch:
+      type: object
+      required:
+      - displayName
+      - inputConfig
+      description: A resource representing a batch of EmbedContent requests.
+      properties:
+        model:
+          type: string
+          description: 'Required. Format: models/{model}.'
+        name:
+          type: string
+          readOnly: true
+          description: 'Output only. Format: batches/{batchId}.'
+        displayName:
+          type: string
+          description: Required. The user-defined name of this batch.
+        inputConfig:
+          $ref: '#/components/schemas/InputEmbedContentConfig'
+        output:
+          allOf:
+          - $ref: '#/components/schemas/EmbedContentBatchOutput'
+          readOnly: true
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        endTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+        batchStats:
+          allOf:
+          - $ref: '#/components/schemas/EmbedContentBatchStats'
+          readOnly: true
+        state:
+          allOf:
+          - $ref: '#/components/schemas/BatchState'
+          readOnly: true
+        priority:
+          type: string
+          format: int64
+          description: Optional. Priority of the batch; default 0.
+        webhookConfig:
+          $ref: '#/components/schemas/WebhookConfig'
+    StringList:
+      type: object
+      properties:
+        values:
+          type: array
+          description: The string values of the metadata to store.
+          items:
+            type: string
+    CustomMetadata:
+      type: object
+      required:
+      - key
+      description: User provided metadata stored as key-value pairs. Value is a union; at most one of
+        stringValue, stringListValue, numericValue.
+      properties:
+        key:
+          type: string
+          description: Required. The key of the metadata to store.
+        stringValue:
+          type: string
+        stringListValue:
+          $ref: '#/components/schemas/StringList'
+        numericValue:
+          type: number
+    WhiteSpaceConfig:
+      type: object
+      description: Whitespace chunking configuration. Field list taken from the File Search guide REST
+        example; not defined in the API reference.
+      properties:
+        maxTokensPerChunk:
+          type: integer
+          description: Maximum number of tokens per chunk.
+        maxOverlapTokens:
+          type: integer
+          description: Maximum number of overlapping tokens between two adjacent chunks.
+    ChunkingConfig:
+      type: object
+      description: Config for telling the service how to chunk the data.
+      properties:
+        whiteSpaceConfig:
+          $ref: '#/components/schemas/WhiteSpaceConfig'
+    FileSearchStore:
+      type: object
+      description: A FileSearchStore is a collection of Documents.
+      properties:
+        name:
+          type: string
+          readOnly: true
+          description: Output only. Immutable. Identifier. The name is an ID (name excluding the fileSearchStores/
+            prefix), up to 40 lowercase alphanumeric or dash characters, derived from displayName plus
+            a 12-character random suffix.
+        displayName:
+          type: string
+          description: Optional. Human-readable display name. Max 512 characters, including spaces.
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+        activeDocumentsCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. Documents ready for retrieval.
+        pendingDocumentsCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. Documents being processed.
+        failedDocumentsCount:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. Documents that failed processing.
+        sizeBytes:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. Total size in bytes of raw data ingested.
+        embeddingModel:
+          type: string
+          description: Optional. Embedding model to use, format models/{model}. A default is used if omitted.
+    ListFileSearchStoresResponse:
+      type: object
+      properties:
+        fileSearchStores:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileSearchStore'
+        nextPageToken:
+          type: string
+          description: Pass as pageToken for the next page. Omitted when there are no more pages.
+    ImportFileRequest:
+      type: object
+      required:
+      - fileName
+      properties:
+        fileName:
+          type: string
+          description: 'Required. Immutable. The name of the File to import. Example: files/abc-123.'
+        customMetadata:
+          type: array
+          description: Custom metadata to be associated with the data.
+          items:
+            $ref: '#/components/schemas/CustomMetadata'
+        chunkingConfig:
+          $ref: '#/components/schemas/ChunkingConfig'
+    UploadToFileSearchStoreRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: Optional. Display name of the created document.
+        customMetadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomMetadata'
+        chunkingConfig:
+          $ref: '#/components/schemas/ChunkingConfig'
+        mimeType:
+          type: string
+          description: Optional. MIME type of the data. Inferred from content if not provided.
+    DocumentState:
+      type: string
+      description: States for the lifecycle of a Document (documented enum name is State).
+      enum:
+      - STATE_UNSPECIFIED
+      - STATE_PENDING
+      - STATE_ACTIVE
+      - STATE_FAILED
+    Document:
+      type: object
+      description: A Document is a collection of Chunks.
+      properties:
+        name:
+          type: string
+          description: Immutable. Identifier. Document resource name, up to 40 lowercase alphanumeric
+            or dash characters, not starting or ending with a dash. If empty on create, derived from displayName
+            plus a 12-character random suffix.
+        displayName:
+          type: string
+          description: Optional. Human-readable display name, up to 512 characters.
+        customMetadata:
+          type: array
+          description: Optional. Up to 20 custom key-value metadata pairs used for querying.
+          items:
+            $ref: '#/components/schemas/CustomMetadata'
+        updateTime:
+          type: string
+          format: date-time
+          readOnly: true
+        createTime:
+          type: string
+          format: date-time
+          readOnly: true
+        state:
+          allOf:
+          - $ref: '#/components/schemas/DocumentState'
+          readOnly: true
+        sizeBytes:
+          type: string
+          format: int64
+          readOnly: true
+          description: Output only. The size of raw bytes ingested into the Document.
+        mimeType:
+          type: string
+          readOnly: true
+          description: Output only. The mime type of the Document.
+    ListDocumentsResponse:
+      type: object
+      properties:
+        documents:
+          type: array
+          description: The returned Documents, sorted by ascending createTime.
+          items:
+            $ref: '#/components/schemas/Document'
+        nextPageToken:
+          type: string
+          description: Pass as pageToken for the next page. Omitted when there are no more pages.
+    BatchGenerateContentRequestItem:
+      type: object
+      required:
+      - model
+      - contents
+      description: Request to generate a completion from the model (as embedded in batch requests).
+      properties:
+        model:
+          type: string
+          description: 'Required. The name of the Model to use for generating the completion. Format:
+            models/{model}.'
+        contents:
+          type: array
+          description: Required. The content of the current conversation with the model.
+          items:
+            $ref: '#/components/schemas/Content'
+        tools:
+          type: array
+          description: Optional. Tools the model may use. Supported Tools are Function and codeExecution.
+          items:
+            $ref: '#/components/schemas/Tool'
+        toolConfig:
+          $ref: '#/components/schemas/ToolConfig'
+        safetySettings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetySetting'
+        continuationToken:
+          type: string
+          format: byte
+          description: Optional. Base64-encoded token to resume a response that stopped with finishReason
+            CONTINUATION; contents must repeat the original request exactly.
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+          description: Optional. Labels as key-value string pairs.
+        systemInstruction:
+          allOf:
+          - $ref: '#/components/schemas/Content'
+          description: Optional. Developer set system instruction(s). Currently, text only.
+        generationConfig:
+          $ref: '#/components/schemas/GenerationConfig'
+        cachedContent:
+          type: string
+          description: 'Optional. Name of the cached content to use as context. Format: cachedContents/{cachedContent}.'
+        serviceTier:
+          $ref: '#/components/schemas/ServiceTier'
+        store:
+          type: boolean
+          description: Optional. Overrides the project-level logging config for this request.
+    BatchEmbedContentRequestItem:
+      type: object
+      required:
+      - model
+      - content
+      description: Request containing the Content for the model to embed.
+      properties:
+        model:
+          type: string
+          description: 'Required. Format: models/{model}.'
+        content:
+          allOf:
+          - $ref: '#/components/schemas/Content'
+          description: Required. The content to embed. Only the parts.text fields are counted.
+        taskType:
+          allOf:
+          - $ref: '#/components/schemas/TaskType'
+          deprecated: true
+          description: Optional. Deprecated; use EmbedContentConfig.task_type.
+        title:
+          type: string
+          deprecated: true
+          description: Optional. Deprecated. Only applies to RETRIEVAL_DOCUMENT.
+        outputDimensionality:
+          type: integer
+          deprecated: true
+          description: Optional. Deprecated; use EmbedContentConfig.output_dimensionality.
+        embedContentConfig:
+          $ref: '#/components/schemas/EmbedContentConfig'
